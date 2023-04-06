@@ -3,7 +3,7 @@ import { posterize } from "potrace";
 import React, { useRef } from "react";
 import { MdAddAPhoto } from "react-icons/md";
 import Resizer from "react-image-file-resizer";
-import { createLayer, defaultPotraceOptions, useLayers } from "../store/layers";
+import { createLayer, defaultPotraceOptions, useLayers } from "../store/layersStore";
 
 interface ImageUploadButtonProps {
   onImageSelect: (file: File) => void;

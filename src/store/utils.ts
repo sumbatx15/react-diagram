@@ -1,7 +1,6 @@
-import { Lookup, SpringValues } from "@react-spring/web";
+import { SpringValues } from "@react-spring/web";
 import { MutableRefObject } from "react";
-import { State } from "zustand";
-import { ILayer } from "./layers";
+import { ILayer } from "./layersStore";
 
 export const isConstrainProportions = (type: ILayer["type"]) => {
   return ["image", "icon"].includes(type);
@@ -25,3 +24,27 @@ export const getUpdatedLayer = (
     y: values.y.get(),
   };
 };
+
+export type Vector = {
+  x: number;
+  y: number;
+};
+
+export interface NodeState {
+  selected: boolean;
+  dragging: boolean;
+  disabled: boolean;
+}
+
+export interface DiagramNode {
+  id: string;
+  type?: string;
+  position: Vector;
+  data: unknown;
+  state: NodeState;
+}
+
+export interface EdgePosition {
+  start: Vector;
+  end: Vector;
+}

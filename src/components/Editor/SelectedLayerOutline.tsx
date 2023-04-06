@@ -1,7 +1,7 @@
 import { Box, Button } from "@chakra-ui/react";
 import { animated } from "@react-spring/web";
 import { memo, useCallback } from "react";
-import { useLayers } from "../../store/layers";
+import { useLayers } from "../../store/layersStore";
 
 export const SelectedLayerOutline = memo(() => {
   const selectedLayer = useLayers(

@@ -3,7 +3,7 @@ import { animated, useTrail, useTransition } from "@react-spring/web";
 import { FC, useCallback, useRef } from "react";
 import { useKeyPressEvent } from "react-use";
 import img from "../../assets/0.svg";
-import { ILayer, useLayers } from "../../store/layers";
+import { ILayer, useLayers } from "../../store/layersStore";
 import { ImageUploadButton } from "../ImageUploadButton";
 import { ImageLayer } from "../Layer/IamgeLayer";
 import { Layer } from "../Layer/Layer";

@@ -14,7 +14,7 @@ import { FC, useState } from "react";
 import { RiContrast2Line } from "react-icons/ri";
 import { useDebounce } from "react-use";
 import { usePotrace } from "../../queries/potrace";
-import { defaultPotraceOptions, useLayers } from "../../store/layers";
+import { defaultPotraceOptions, useLayers } from "../../store/layersStore";
 
 export const PotraceBtn: FC = () => {
   const layer = useLayers((state) => state.getSelectedLayer());

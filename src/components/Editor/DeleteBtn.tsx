@@ -3,7 +3,7 @@ import { animated, useSpring } from "@react-spring/web";
 import { FC } from "react";
 import { TbTrashXFilled } from "react-icons/tb";
 import { useFullscreen, useToggle } from "react-use";
-import { useLayers } from "../../store/layers";
+import { useLayers } from "../../store/layersStore";
 animated;
 export const DeleteBtn: FC = () => {
   const layer = useLayers((state) => state.getSelectedLayer());

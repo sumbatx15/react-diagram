@@ -1,40 +1,62 @@
-import { useConst, useMergeRefs } from "@chakra-ui/react";
 import { animated, useSpring } from "@react-spring/web";
 import { useGesture } from "@use-gesture/react";
 import { FC, useRef } from "react";
-import { useInView } from "react-intersection-observer";
-import { useDiagram } from "../../store/diagram";
+import { useDiagram } from "../../store/diagramStore";
+import { useNode } from "../Diagram/DiagramNode";
+import useResizeObserver from "@react-hook/resize-observer";
 
-export interface LayerProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface LayerProps {
   id: string;
-  // gestureContainer: MutableRefObject<HTMLDivElement | null>;
   children?: React.ReactNode;
 }
 
-export const Layer: FC<LayerProps> = ({
-  id,
-  /* gestureContainer, */ ...props
-}) => {
-  const targetRef = useRef<Element>(null);
+export const Layer: FC<LayerProps> = ({ id, children }) => {
+  const ref = useRef<HTMLElement>(null);
+
+  useResizeObserver(ref, (entry) => {
+    useDiagram.getState().updateElement(id, entry.target, entry.contentRect);
+  });
 
   const [styles, api] = useSpring(() => ({
-    x: Math.random() * 1000,
-    y: Math.random() * 1000,
+    x: useDiagram.getState().getNode(id)?.position.x || 0,
+    y: useDiagram.getState().getNode(id)?.position.y || 0,
   }));
+
+  useNode((node) => {
+    if (
+      node.position.x !== styles.x.get() ||
+      node.position.y !== styles.y.get()
+    ) {
+      api.start({
+        x: node.position.x,
+        y: node.position.y,
+      });
+    }
+  });
 
   useGesture(
     {
-      onDrag: ({ delta: [x, y], event }) => {
+      onDrag: ({ delta: [x, y], event, canceled, cancel }) => {
+        if (canceled) return;
+        if (
+          event.target instanceof HTMLInputElement ||
+          (event.target as HTMLElement).classList.contains("handle")
+        )
+          return cancel();
+
         event.stopPropagation();
         const scale = useDiagram.getState().scale;
+        const newX = styles.x.get() + x / scale;
+        const newY = styles.y.get() + y / scale;
         api.set({
-          x: styles.x.get() + x / scale,
-          y: styles.y.get() + y / scale,
+          x: newX,
+          y: newY,
         });
+        useDiagram.getState().updateNodePosition(id, { x: newX, y: newY });
       },
     },
     {
-      target: targetRef,
+      target: ref,
       eventOptions: {
         passive: false,
       },
@@ -44,7 +66,9 @@ export const Layer: FC<LayerProps> = ({
   return (
     <animated.div
       //@ts-ignore
-      ref={targetRef}
+      ref={ref}
+      className="layer"
+      data-id={id}
       style={{
         width: "min-content",
         ...styles,
@@ -52,9 +76,8 @@ export const Layer: FC<LayerProps> = ({
         userSelect: "none",
         position: "absolute",
       }}
-      {...props}
     >
-      {props.children}
+      {children}
     </animated.div>
   );
 };

@@ -1,6 +1,6 @@
 import { Box, Text } from "@chakra-ui/react";
 import { FC } from "react";
-import { useLayers } from "../../store/layers";
+import { useLayers } from "../../store/layersStore";
 import { Layer, LayerProps } from "./Layer";
 
 export const ImageLayer: FC<LayerProps> = (props) => {

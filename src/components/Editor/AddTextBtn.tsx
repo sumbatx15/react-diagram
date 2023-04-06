@@ -18,7 +18,7 @@ import {
   createLayer,
   defaultPotraceOptions,
   useLayers,
-} from "../../store/layers";
+} from "../../store/layersStore";
 
 export const AddTextBtn: FC = () => {
   const layer = useLayers((state) => state.getSelectedLayer());
