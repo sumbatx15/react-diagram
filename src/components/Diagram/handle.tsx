@@ -3,6 +3,7 @@ import useResizeObserver from "@react-hook/resize-observer";
 import { useGesture } from "@use-gesture/react";
 import { useRef, FC } from "react";
 import { useDiagram } from "../../store/diagramStore";
+import { createEdge } from "../../store/utils";
 import { createHandleOuterId } from "../../utils";
 import { useNode, useNodeContext } from "./DiagramNode";
 
@@ -14,7 +15,7 @@ interface HandleProps {
 export const Handle: FC<HandleProps> = ({ id, type }) => {
   const targetRef = useRef<HTMLDivElement>(null);
   const isActive = useDiagram((state) => {
-    return state.isActiveEdge;
+    return state.isDraggedEdgeVisible;
   });
 
   const { nodeId } = useNodeContext();
@@ -22,7 +23,7 @@ export const Handle: FC<HandleProps> = ({ id, type }) => {
   useResizeObserver(targetRef, (entry) => {
     useDiagram
       .getState()
-      .updateElement(
+      .setElement(
         createHandleOuterId(nodeId, id),
         entry.target,
         entry.contentRect
@@ -37,21 +38,23 @@ export const Handle: FC<HandleProps> = ({ id, type }) => {
           const rect = (
             event.currentTarget as HTMLElement
           ).getBoundingClientRect();
-          const xs = (rect.left - state.position.x) / state.scale;
-          const ys = (rect.top - state.position.y) / state.scale;
+          const xs =
+            (rect.left - state.viewport.position.x) / state.viewport.scale;
+          const ys =
+            (rect.top - state.viewport.position.y) / state.viewport.scale;
 
-          useDiagram.getState().updateEdge({
+          useDiagram.getState().updateDraggedEdge({
             start: {
-              x: xs + rect.width / 2 / state.scale,
-              y: ys + rect.height / 2 / state.scale,
+              x: xs + rect.width / 2 / state.viewport.scale,
+              y: ys + rect.height / 2 / state.viewport.scale,
             },
           });
         }
 
-        useDiagram.getState().setIsActiveEdge(true);
-        const xs = (xy[0] - state.position.x) / state.scale;
-        const ys = (xy[1] - state.position.y) / state.scale;
-        useDiagram.getState().updateEdge({
+        useDiagram.getState().setDraggedEdgeVisible(true);
+        const xs = (xy[0] - state.viewport.position.x) / state.viewport.scale;
+        const ys = (xy[1] - state.viewport.position.y) / state.viewport.scale;
+        useDiagram.getState().updateDraggedEdge({
           end: {
             x: xs,
             y: ys,
@@ -61,13 +64,15 @@ export const Handle: FC<HandleProps> = ({ id, type }) => {
         const element = document.elementFromPoint(...xy);
         if (element && element.classList.contains("handle")) {
           const rect = element.getBoundingClientRect();
-          const xs = (rect.left - state.position.x) / state.scale;
-          const ys = (rect.top - state.position.y) / state.scale;
+          const xs =
+            (rect.left - state.viewport.position.x) / state.viewport.scale;
+          const ys =
+            (rect.top - state.viewport.position.y) / state.viewport.scale;
           const elementCenter = [
-            xs + rect.width / 2 / state.scale,
-            ys + rect.height / 2 / state.scale,
+            xs + rect.width / 2 / state.viewport.scale,
+            ys + rect.height / 2 / state.viewport.scale,
           ];
-          useDiagram.getState().updateEdge({
+          useDiagram.getState().updateDraggedEdge({
             end: {
               x: elementCenter[0],
               y: elementCenter[1],
@@ -78,25 +83,28 @@ export const Handle: FC<HandleProps> = ({ id, type }) => {
       onDragEnd: ({ xy }) => {
         const element = document.elementFromPoint(...xy);
 
-        const [source, target] = [targetRef.current, element] as HTMLElement[];
+        const [from, to] = [targetRef.current, element] as HTMLElement[];
         if (
-          source &&
-          target &&
-          target.classList.contains("handle") &&
-          source.dataset.nodeId !== target.dataset.nodeId &&
-          source.dataset.id !== target.dataset.id
+          from &&
+          to &&
+          to.classList.contains("handle") &&
+          from.dataset.nodeId !== to.dataset.nodeId &&
+          from.dataset.id !== to.dataset.id &&
+          to.dataset.type !== type
         ) {
-          console.log("target:", target);
-          console.log("source:", source);
-          useDiagram.getState().addEdge({
-            source: source.dataset.nodeId as string,
-            target: target.dataset.nodeId as string,
-            sourceHandle: source.dataset.id as string,
-            targetHandle: target.dataset.id as string,
-            data: "",
-          });
+          const [source, target] = type === "source" ? [from, to] : [to, from];
+          console.log("source:", source.dataset.type);
+          useDiagram.getState().addEdge(
+            createEdge({
+              source: source.dataset.nodeId as string,
+              target: target.dataset.nodeId as string,
+              sourceHandle: source.dataset.id as string,
+              targetHandle: target.dataset.id as string,
+              data: "",
+            })
+          );
         }
-        useDiagram.getState().setIsActiveEdge(false);
+        useDiagram.getState().setDraggedEdgeVisible(false);
       },
     },
     {

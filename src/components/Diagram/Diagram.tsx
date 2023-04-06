@@ -12,16 +12,15 @@ import { FullscreenBtn } from "../Editor/FullscreenBtn";
 import { DiagramNodeFC } from "./DiagramNode";
 import { Edge, EdgeContainer, UserEdge } from "./edge";
 export const Diagram: FC = () => {
-  const updateScale = useDiagram((state) => state.updateScale);
-  const updatePosition = useDiagram((state) => state.updatePosition);
+  const updateScale = useDiagram((state) => state.viewport.updateScale);
+  const updatePosition = useDiagram((state) => state.viewport.updatePosition);
   const nodeIds = useDiagram((state) => state.nodeIds);
-  const addNodes = useDiagram((state) => state.addNodes);
   const addNode = useDiagram((state) => state.addNode);
   const addEdges = useDiagram((state) => state.addEdges);
 
   const handleAdd = () => {
-    addNode();
-    addNode();
+    addNode(createNode());
+    addNode(createNode());
     // let nodeId = 0;
     // const nodes: DiagramNode[] = [];
     // const edges: IEdge[] = [];
@@ -55,14 +54,13 @@ export const Diagram: FC = () => {
   const [styles, api] = useSpring(() => ({
     x: 0,
     y: 0,
-
-    scale: useDiagram.getState().scale,
+    scale: useDiagram.getState().viewport.scale,
   }));
 
   useDiagram((state) => {
-    if (state.scale !== styles.scale.get()) {
+    if (state.viewport.scale !== styles.scale.get()) {
       api.start({
-        scale: state.scale,
+        scale: state.viewport.scale,
         config: {
           ...config.wobbly,
           duration: 100,

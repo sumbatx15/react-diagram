@@ -3,6 +3,7 @@ import { create, StoreApi, UseBoundStore } from "zustand";
 import { immer } from "zustand/middleware/immer";
 import uniqid from "uniqid";
 import { shallow } from "zustand/shallow";
+import { createDiagramStore } from ".";
 
 const createVector = (
   x: number = Math.random() * 500,
@@ -223,7 +224,7 @@ export const createDiagramState = () =>
       }));
     },
   }));
-export const useDiagram = createDiagramState();
+export const useDiagram = createDiagramStore();
 
 // @ts-ignore
 window.useDiagram = useDiagram;
@@ -294,7 +295,7 @@ export const useDiagrams = create<DiagramStates, [["zustand/immer", never]]>(
 );
 
 export const getInDiagramPosition = ({ x, y }: Vector) => {
-  const { position, scale } = useDiagram.getState();
+  const { position, scale } = useDiagram.getState().viewport;
   return {
     x: (x - position.x) / scale,
     y: (y - position.y) / scale,

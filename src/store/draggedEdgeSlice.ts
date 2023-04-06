@@ -4,7 +4,7 @@ import { DiagramNode, EdgePosition, NodeState, Vector } from "./utils";
 
 export type DraggedEdgeSlice = {
   draggedEdge: EdgePosition;
-  updateDraggedEdge: (position: EdgePosition) => void;
+  updateDraggedEdge: (position: Partial<EdgePosition>) => void;
   isDraggedEdgeVisible: boolean;
   setDraggedEdgeVisible: (visible: boolean) => void;
 };
@@ -20,7 +20,10 @@ export const createDraggedEdgeSlice: StoreSlice<DraggedEdgeSlice> = (
   },
   updateDraggedEdge: (position) => {
     set((state) => ({
-      draggedEdge: position,
+      draggedEdge: {
+        ...state.draggedEdge,
+        ...position,
+      },
     }));
   },
   isDraggedEdgeVisible: false,

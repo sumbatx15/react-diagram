@@ -5,10 +5,7 @@ import {
   useSpring,
 } from "@react-spring/web";
 import { ComponentProps, FC, ReactNode } from "react";
-import {
-  Edge as EdgeType,
-  useDiagram
-} from "../../store/diagramStore";
+import { Edge as EdgeType, useDiagram } from "../../store/diagramStore";
 import { Vector } from "../../store/utils";
 
 // create type that takes a type and returns the same type but the values are union of the same type and SpringValue
@@ -100,7 +97,6 @@ export const Edge: FC<
 
 export const StatefulEdge: FC<{ edge: EdgeType }> = ({ edge }) => {
   const { start, end } = useDiagram.getState().edgePositions[edge.id];
-  console.log("edge:", edge.id);
   const [styles, api] = useSpring(() => ({
     start: [0, 0],
     end: [0, 0],
@@ -135,7 +131,7 @@ export const StatefulEdge: FC<{ edge: EdgeType }> = ({ edge }) => {
 };
 
 export const UserEdge: FC = () => {
-  const isActiveEdge = useDiagram((state) => state.isActiveEdge);
+  const isVisible = useDiagram((state) => state.isDraggedEdgeVisible);
 
   const [styles, api] = useSpring(() => ({
     start: [0, 0],
@@ -144,11 +140,8 @@ export const UserEdge: FC = () => {
   }));
 
   useDiagram((state) => {
-    const edgePosition = state.userEdge;
-    if (!state.userEdge) return;
-    const { start, end } = edgePosition;
-
-    //Check if edge data is different from the spring values
+    if (!state.draggedEdge) return;
+    const { start, end } = state.draggedEdge;
 
     if (
       start.x !== styles.start.get()[0] ||
@@ -163,7 +156,7 @@ export const UserEdge: FC = () => {
       });
     }
   });
-  if (!isActiveEdge) return null;
+  if (!isVisible) return null;
   return (
     <Edge style={{ pointerEvents: "none" }} animated={false} d={styles.d} />
   );

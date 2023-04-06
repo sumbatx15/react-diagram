@@ -1,11 +1,17 @@
 import { SpringValues } from "@react-spring/web";
 import { MutableRefObject } from "react";
+import { Edge } from "./diagramStore";
 import { ILayer } from "./layersStore";
 
 export const isConstrainProportions = (type: ILayer["type"]) => {
   return ["image", "icon"].includes(type);
 };
-
+export const createEdge = (edge: Omit<Edge, "id">) => {
+  return {
+    id: `${edge.source}-${edge.sourceHandle}-${edge.target}-${edge.targetHandle}`,
+    ...edge,
+  };
+};
 export const getUpdatedLayer = (
   ref: MutableRefObject<HTMLDivElement | null>,
   values: SpringValues<{

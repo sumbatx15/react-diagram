@@ -14,7 +14,7 @@ export const Layer: FC<LayerProps> = ({ id, children }) => {
   const ref = useRef<HTMLElement>(null);
 
   useResizeObserver(ref, (entry) => {
-    useDiagram.getState().updateElement(id, entry.target, entry.contentRect);
+    useDiagram.getState().setElement(id, entry.target, entry.contentRect);
   });
 
   const [styles, api] = useSpring(() => ({
@@ -45,7 +45,7 @@ export const Layer: FC<LayerProps> = ({ id, children }) => {
           return cancel();
 
         event.stopPropagation();
-        const scale = useDiagram.getState().scale;
+        const scale = useDiagram.getState().viewport.scale;
         const newX = styles.x.get() + x / scale;
         const newY = styles.y.get() + y / scale;
         api.set({
@@ -70,7 +70,7 @@ export const Layer: FC<LayerProps> = ({ id, children }) => {
       className="layer"
       data-id={id}
       style={{
-        width: "min-content",
+        width: "",
         ...styles,
         touchAction: "none",
         userSelect: "none",
