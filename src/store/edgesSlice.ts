@@ -1,6 +1,6 @@
 import { StoreSlice } from ".";
 import { Edge } from "./diagramStore";
-import { DiagramNode, EdgePosition, NodeState, Vector } from "./utils";
+import { createEdgePosition, EdgePosition } from "./utils";
 
 export type EdgesSlice = {
   edges: Edge[];
@@ -29,6 +29,10 @@ export const createEdgesSlice: StoreSlice<EdgesSlice> = (set, get) => ({
   addEdge: (edge) => {
     set((state) => ({
       edges: [...state.edges, edge],
+      edgePositions: {
+        ...state.edgePositions,
+        [edge.id]: createEdgePosition(state, edge),
+      },
     }));
   },
 

@@ -4,7 +4,7 @@ import { useGesture } from "@use-gesture/react";
 import { useRef, FC } from "react";
 import { useDiagram } from "../../store/diagramStore";
 import { createEdge } from "../../store/utils";
-import { createHandleOuterId } from "../../utils";
+import { createHandleElementId } from "../../utils";
 import { useNode, useNodeContext } from "./DiagramNode";
 
 interface HandleProps {
@@ -24,7 +24,7 @@ export const Handle: FC<HandleProps> = ({ id, type }) => {
     useDiagram
       .getState()
       .setElement(
-        createHandleOuterId(nodeId, id),
+        createHandleElementId(nodeId, id),
         entry.target,
         entry.contentRect
       );

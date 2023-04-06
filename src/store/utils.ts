@@ -1,6 +1,14 @@
 import { SpringValues } from "@react-spring/web";
 import { MutableRefObject } from "react";
-import { Edge } from "./diagramStore";
+import { shallow } from "zustand/shallow";
+import { StoreState } from ".";
+import { createHandleElementId } from "../utils";
+import {
+  Edge,
+  getCenterFromRect,
+  getInDiagramPosition,
+  useDiagram,
+} from "./diagramStore";
 import { ILayer } from "./layersStore";
 
 export const isConstrainProportions = (type: ILayer["type"]) => {
@@ -54,3 +62,96 @@ export interface EdgePosition {
   start: Vector;
   end: Vector;
 }
+
+export const createZeroEdgePosition = () => {
+  return {
+    start: { x: 0, y: 0 },
+    end: { x: 0, y: 0 },
+  };
+};
+export const getSourceHandleRect = (state: StoreState, edge: Edge) => {
+  return state.elements[
+    createHandleElementId(edge.source, edge.sourceHandle)
+  ].getBoundingClientRect();
+};
+
+export const getTargetHandleRect = (state: StoreState, edge: Edge) => {
+  return state.elements[
+    createHandleElementId(edge.target, edge.targetHandle)
+  ].getBoundingClientRect();
+};
+
+export const createEdgePosition = (state: StoreState, edge: Edge) => {
+  const sourceHandleRect = getSourceHandleRect(state, edge);
+  const targetHandleRect = getTargetHandleRect(state, edge);
+
+  if (sourceHandleRect && targetHandleRect) {
+    return createEdgePositionFromRects(sourceHandleRect, targetHandleRect);
+  }
+  return createZeroEdgePosition();
+};
+
+export const createEdgePositionFromRects = (
+  sourceHandleRect: DOMRect,
+  targetHandleRect: DOMRect
+) => {
+  return {
+    start: getInDiagramPosition(getCenterFromRect(sourceHandleRect)),
+    end: getInDiagramPosition(getCenterFromRect(targetHandleRect)),
+  };
+};
+
+const areAllElemetsVisisble = (state: StoreState, edge: Edge) => {
+  return (
+    state.elements[edge.source] &&
+    state.elements[edge.target] &&
+    state.elements[createHandleElementId(edge.source, edge.sourceHandle)] &&
+    state.elements[createHandleElementId(edge.target, edge.targetHandle)]
+  );
+};
+
+const hasChanges = (state: StoreState, prevState: StoreState, edge: Edge) => {
+  return (
+    !shallow(
+      state.nodePositions[edge.source],
+      prevState.nodePositions[edge.source]
+    ) ||
+    !shallow(
+      state.nodePositions[edge.target],
+      prevState.nodePositions[edge.target]
+    ) ||
+    !shallow(
+      state.elementRects[edge.source],
+      prevState.elementRects[edge.source]
+    ) ||
+    !shallow(
+      state.elementRects[edge.target],
+      prevState.elementRects[edge.target]
+    ) ||
+    !shallow(
+      state.elementRects[createHandleElementId(edge.source, edge.sourceHandle)],
+      prevState.elementRects[
+        createHandleElementId(edge.source, edge.sourceHandle)
+      ]
+    ) ||
+    !shallow(
+      state.elementRects[createHandleElementId(edge.target, edge.targetHandle)],
+      prevState.elementRects[
+        createHandleElementId(edge.target, edge.targetHandle)
+      ]
+    )
+  );
+};
+
+export const updateEdgePositionOnNodeMove = (
+  state: StoreState,
+  prev: StoreState,
+  edge: Edge
+) => {
+  if (!areAllElemetsVisisble(state, edge)) return;
+  if (!hasChanges(state, prev, edge)) return;
+
+  useDiagram
+    .getState()
+    .updateEdgePosition(edge.id, createEdgePosition(state, edge));
+};

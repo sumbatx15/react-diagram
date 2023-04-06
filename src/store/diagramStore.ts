@@ -1,9 +1,16 @@
-import { Vector, NodeState, DiagramNode, EdgePosition } from "./utils";
+import {
+  Vector,
+  NodeState,
+  DiagramNode,
+  EdgePosition,
+  updateEdgePositionOnNodeMove,
+} from "./utils";
 import { create, StoreApi, UseBoundStore } from "zustand";
 import { immer } from "zustand/middleware/immer";
 import uniqid from "uniqid";
 import { shallow } from "zustand/shallow";
 import { createDiagramStore } from ".";
+import { createHandleElementId } from "../utils";
 
 const createVector = (
   x: number = Math.random() * 500,
@@ -231,46 +238,7 @@ window.useDiagram = useDiagram;
 
 useDiagram.subscribe((state, prev) => {
   state.edges.forEach((edge) => {
-    const { source, target, id } = edge;
-    const [
-      sourceNodePos,
-      oldSourceNodePos,
-      targetNodePos,
-      oldTargetNodePos,
-      sourceNodeSize,
-      oldSourceNodeSize,
-      targetNodeSize,
-      oldTargetNodeSize,
-    ] = [
-      state.nodePositions[source],
-      prev.nodePositions[source],
-      state.nodePositions[target],
-      prev.nodePositions[target],
-      state.nodeSizes[source],
-      prev.nodeSizes[source],
-      state.nodeSizes[target],
-      prev.nodeSizes[target],
-    ];
-
-    if (
-      !shallow(sourceNodePos, oldSourceNodePos) ||
-      !shallow(targetNodePos, oldTargetNodePos) ||
-      !state.edgePositions[id]
-    ) {
-      const sourceSelector = `[data-id="${edge.sourceHandle}"][data-node-id="${edge.source}"]`;
-      const targetSelector = `[data-id="${edge.targetHandle}"][data-node-id="${edge.target}"]`;
-      const sourceRect = document
-        .querySelector(sourceSelector)
-        ?.getBoundingClientRect();
-      const targetRect = document
-        .querySelector(targetSelector)
-        ?.getBoundingClientRect();
-      if (sourceRect && targetRect) {
-        const start = getInDiagramPosition(getCenterFromRect(sourceRect));
-        const end = getInDiagramPosition(getCenterFromRect(targetRect));
-        useDiagram.getState().updateEdgePosition(edge.id, { start, end });
-      }
-    }
+    updateEdgePositionOnNodeMove(state, prev, edge);
   });
 });
 

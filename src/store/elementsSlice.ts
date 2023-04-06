@@ -4,7 +4,7 @@ import { DiagramNode, EdgePosition, NodeState, Vector } from "./utils";
 
 export type ElementsSlice = {
   elements: Record<string, Element>;
-  elementSizes: Record<string, DOMRectReadOnly>;
+  elementRects: Record<string, DOMRectReadOnly>;
   setElement: (id: string, element: Element, size: DOMRectReadOnly) => void;
   updateElementSize: (id: string, size: DOMRectReadOnly) => void;
 };
@@ -12,23 +12,23 @@ export type ElementsSlice = {
 // eslint-disable-next-line react-func/max-lines-per-function
 export const createElementsSlice: StoreSlice<ElementsSlice> = (set, get) => ({
   elements: {},
-  elementSizes: {},
+  elementRects: {},
   setElement: (id, element, size) => {
     set((state) => ({
       elements: {
         ...state.elements,
         [id]: element,
       },
-      elementSizes: {
-        ...state.elementSizes,
+      elementRects: {
+        ...state.elementRects,
         [id]: size,
       },
     }));
   },
   updateElementSize: (id, size) => {
     set((state) => ({
-      elementSizes: {
-        ...state.elementSizes,
+      elementRects: {
+        ...state.elementRects,
         [id]: size,
       },
     }));

@@ -1,3 +1,3 @@
-export const createHandleOuterId = (nodeId: string, handleId: string) => {
+export const createHandleElementId = (nodeId: string, handleId: string) => {
   return `${nodeId}-${handleId}`;
 };

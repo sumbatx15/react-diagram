@@ -97,6 +97,7 @@ export const Edge: FC<
 
 export const StatefulEdge: FC<{ edge: EdgeType }> = ({ edge }) => {
   const { start, end } = useDiagram.getState().edgePositions[edge.id];
+  console.log('start, end :', start, end )
   const [styles, api] = useSpring(() => ({
     start: [0, 0],
     end: [0, 0],
