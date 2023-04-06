@@ -43,12 +43,19 @@ export const DiagramNodeFC: FC<{ nodeId: string }> = ({ nodeId }) => {
     <NodeContextProvider nodeId={nodeId}>
       <Layer id={nodeId}>
         <>
-          <Stack pos="relative" bg="gray.700" width="60px" h="20px">
-            <Box pos="absolute" left="-10px">
+          <Stack
+            pos="relative"
+            bg="gray.700"
+            rounded="xl"
+            width="60px"
+            h="20px"
+            spacing="0"
+          >
+            <Box pos="absolute" left="-10px" top="50%" transform="translateY(-50%)">
               <Handle id="in" type="target" />
             </Box>
 
-            <Box pos="absolute" right="-10px">
+            <Box pos="absolute" right="-10px" top="50%" transform="translateY(-50%)">
               <Handle id="out" type="source" />
             </Box>
           </Stack>

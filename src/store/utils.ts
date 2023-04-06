@@ -151,7 +151,9 @@ export const updateEdgePositionOnNodeMove = (
   if (!areAllElemetsVisisble(state, edge)) return;
   if (!hasChanges(state, prev, edge)) return;
 
-  useDiagram
-    .getState()
-    .updateEdgePosition(edge.id, createEdgePosition(state, edge));
+  setTimeout(() => {
+    useDiagram
+      .getState()
+      .updateEdgePosition(edge.id, createEdgePosition(state, edge));
+  }, 10);
 };
