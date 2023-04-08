@@ -4,7 +4,7 @@ import { DiagramNode, useDiagram } from "../../store/diagramStore";
 import React, { createContext, useContext } from "react";
 import { Layer } from "../Layer/Layer";
 import { Handle } from "./handle";
-import { Box, Stack } from "@chakra-ui/react";
+import { Box, Stack, Text } from "@chakra-ui/react";
 interface NodeContextType {
   nodeId: string;
 }
@@ -43,12 +43,19 @@ export const DiagramNodeFC: FC<{ nodeId: string }> = ({ nodeId }) => {
     <NodeContextProvider nodeId={nodeId}>
       <Layer id={nodeId}>
         <>
-          <Stack pos="relative" bg="gray.700" width="60px" h="20px">
+          <Stack
+            rounded="xl"
+            pos="relative"
+            bg="gray.700"
+            p="4"
+            py="2"
+            spacing="0"
+          >
             <Box pos="absolute" left="-10px">
               <Handle id="in" type="target" />
             </Box>
-
-            <Box pos="absolute" right="-10px">
+            <Text>{nodeId}</Text>
+            <Box pos="absolute" right="-10px" top="20px">
               <Handle id="out" type="source" />
             </Box>
           </Stack>

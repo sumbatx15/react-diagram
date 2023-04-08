@@ -16,6 +16,8 @@
     "@react-spring/web": "^9.7.1",
     "@use-gesture/react": "^10.2.24",
     "buffer": "^6.0.3",
+    "deep-object-diff": "^1.1.9",
+    "diff": "^5.1.0",
     "framer-motion": "^10.2.4",
     "immer": "^9.0.19",
     "lodash-es": "^4.17.21",
@@ -34,6 +36,7 @@
   "devDependencies": {
     "@esbuild-plugins/node-globals-polyfill": "^0.2.3",
     "@esbuild-plugins/node-modules-polyfill": "^0.2.2",
+    "@types/diff": "^5.0.3",
     "@types/lodash-es": "^4.17.7",
     "@types/potrace": "^2.1.1",
     "@types/react": "^18.0.27",

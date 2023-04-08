@@ -11,6 +11,13 @@ import uniqid from "uniqid";
 import { shallow } from "zustand/shallow";
 import { createDiagramStore } from ".";
 import { createHandleElementId } from "../utils";
+import {
+  diff,
+  addedDiff,
+  deletedDiff,
+  updatedDiff,
+  detailedDiff,
+} from "deep-object-diff";
 
 const createVector = (
   x: number = Math.random() * 500,
@@ -237,9 +244,52 @@ export const useDiagram = createDiagramStore();
 window.useDiagram = useDiagram;
 
 useDiagram.subscribe((state, prev) => {
+  // const d = updatedDiff(prev.nodePositions, state.nodePositions);
   state.edges.forEach((edge) => {
     updateEdgePositionOnNodeMove(state, prev, edge);
   });
+  // state.edges.forEach((edge) => {
+  //   const { source, target, id } = edge;
+  //   const [
+  //     sourceNodePos,
+  //     oldSourceNodePos,
+  //     targetNodePos,
+  //     oldTargetNodePos,
+  //     sourceNodeSize,
+  //     oldSourceNodeSize,
+  //     targetNodeSize,
+  //     oldTargetNodeSize,
+  //   ] = [
+  //     state.nodePositions[source],
+  //     prev.nodePositions[source],
+  //     state.nodePositions[target],
+  //     prev.nodePositions[target],
+  //     state.nodeSizes[source],
+  //     prev.nodeSizes[source],
+  //     state.nodeSizes[target],
+  //     prev.nodeSizes[target],
+  //   ];
+
+  //   if (
+  //     !shallow(sourceNodePos, oldSourceNodePos) ||
+  //     !shallow(targetNodePos, oldTargetNodePos) ||
+  //     !state.edgePositions[id]
+  //   ) {
+  //     const sourceSelector = `[data-id="${edge.sourceHandle}"][data-node-id="${edge.source}"]`;
+  //     const targetSelector = `[data-id="${edge.targetHandle}"][data-node-id="${edge.target}"]`;
+  //     const sourceRect = document
+  //       .querySelector(sourceSelector)
+  //       ?.getBoundingClientRect();
+  //     const targetRect = document
+  //       .querySelector(targetSelector)
+  //       ?.getBoundingClientRect();
+  //     if (sourceRect && targetRect) {
+  //       const start = getInDiagramPosition(getCenterFromRect(sourceRect));
+  //       const end = getInDiagramPosition(getCenterFromRect(targetRect));
+  //       useDiagram.getState().updateEdgePosition(edge.id, { start, end });
+  //     }
+  //   }
+  // });
 });
 
 interface DiagramStates {
@@ -247,20 +297,6 @@ interface DiagramStates {
   createDiagram: (id: string) => void;
   getDiagram: (id: string) => UseBoundStore<StoreApi<DiagramState>> | undefined;
 }
-
-export const useDiagrams = create<DiagramStates, [["zustand/immer", never]]>(
-  immer((set, get) => ({
-    diagram: {},
-    createDiagram: (id) => {
-      set((state) => {
-        state.diagram[id] = createDiagramState();
-      });
-    },
-    getDiagram: (id) => {
-      return get().diagram[id];
-    },
-  }))
-);
 
 export const getInDiagramPosition = ({ x, y }: Vector) => {
   const { position, scale } = useDiagram.getState().viewport;

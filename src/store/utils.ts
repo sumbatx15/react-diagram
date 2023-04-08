@@ -85,11 +85,9 @@ export const createEdgePosition = (state: StoreState, edge: Edge) => {
   const sourceHandleRect = getSourceHandleRect(state, edge);
   const targetHandleRect = getTargetHandleRect(state, edge);
 
-  if (sourceHandleRect && targetHandleRect) {
-    return createEdgePositionFromRects(sourceHandleRect, targetHandleRect);
-  }
-  return createZeroEdgePosition();
+  return createEdgePositionFromRects(sourceHandleRect, targetHandleRect);
 };
+window.createEdgePosition = createEdgePosition;
 
 export const createEdgePositionFromRects = (
   sourceHandleRect: DOMRect,
@@ -101,7 +99,7 @@ export const createEdgePositionFromRects = (
   };
 };
 
-const areAllElemetsVisisble = (state: StoreState, edge: Edge) => {
+const areAllElementsVisible = (state: StoreState, edge: Edge) => {
   return (
     state.elements[edge.source] &&
     state.elements[edge.target] &&
@@ -148,10 +146,14 @@ export const updateEdgePositionOnNodeMove = (
   prev: StoreState,
   edge: Edge
 ) => {
-  if (!areAllElemetsVisisble(state, edge)) return;
+  if (!areAllElementsVisible(state, edge)) return;
+  const changed = hasChanges(state, prev, edge);
+  console.log("changed:", changed);
   if (!hasChanges(state, prev, edge)) return;
 
-  useDiagram
-    .getState()
-    .updateEdgePosition(edge.id, createEdgePosition(state, edge));
+  setTimeout(() => {
+    useDiagram
+      .getState()
+      .updateEdgePosition(edge.id, createEdgePosition(state, edge));
+  }, 10);
 };

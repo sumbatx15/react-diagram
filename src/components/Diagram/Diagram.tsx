@@ -11,11 +11,13 @@ import {
 import { FullscreenBtn } from "../Editor/FullscreenBtn";
 import { DiagramNodeFC } from "./DiagramNode";
 import { Edge, EdgeContainer, UserEdge } from "./edge";
+import { createNodesAndEdges } from "./utils";
 export const Diagram: FC = () => {
   const updateScale = useDiagram((state) => state.viewport.updateScale);
   const updatePosition = useDiagram((state) => state.viewport.updatePosition);
   const nodeIds = useDiagram((state) => state.nodeIds);
   const addNode = useDiagram((state) => state.addNode);
+  const addNodes = useDiagram((state) => state.addNodes);
   const addEdges = useDiagram((state) => state.addEdges);
 
   const handleAdd = () => {
@@ -47,6 +49,12 @@ export const Diagram: FC = () => {
     // });
     // addNodes(nodes);
     // addEdges(edges);
+  };
+
+  const addMore = () => {
+    const { edges, nodes } = createNodesAndEdges();
+    addNodes(nodes);
+    addEdges(edges);
   };
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -168,7 +176,8 @@ export const Diagram: FC = () => {
       }}
     >
       <Box zIndex={100} pos="absolute">
-        <button onClick={handleAdd}>addnode</button>
+        {/* <button onClick={handleAdd}>addnode</button> */}
+        <button onClick={addMore}>add more</button>
         <FullscreenBtn target={containerRef} />
       </Box>
       <animated.div

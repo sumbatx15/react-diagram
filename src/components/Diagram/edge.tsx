@@ -6,7 +6,8 @@ import {
 } from "@react-spring/web";
 import { ComponentProps, FC, ReactNode } from "react";
 import { Edge as EdgeType, useDiagram } from "../../store/diagramStore";
-import { Vector } from "../../store/utils";
+import { createZeroEdgePosition, Vector } from "../../store/utils";
+import { getBezierPath, Position } from "./utils";
 
 // create type that takes a type and returns the same type but the values are union of the same type and SpringValue
 type Primitive = string | number | boolean | null | undefined;
@@ -54,7 +55,7 @@ export const EdgeContainer: FC<
 
 export const Edge: FC<
   EdgeProps & Partial<ComponentProps<AnimatedComponent<"path">>>
-> = ({ d, animated: _animate = true, style, ...props }) => {
+> = ({ d, animated: _animate = false, style, ...props }) => {
   return (
     <animated.path
       onClick={console.log}
@@ -96,15 +97,18 @@ export const Edge: FC<
 };
 
 export const StatefulEdge: FC<{ edge: EdgeType }> = ({ edge }) => {
-  const { start, end } = useDiagram.getState().edgePositions[edge.id];
-  console.log('start, end :', start, end )
   const [styles, api] = useSpring(() => ({
     start: [0, 0],
     end: [0, 0],
-    d: getCubicBezierPathData(
-      { x: start.x, y: start.y },
-      { x: end.x, y: end.y }
-    ),
+    d: getBezierPath({
+      sourceX: 0,
+      sourceY: 0,
+      targetX: 0,
+      targetY: 0,
+      sourcePosition: Position.Right,
+      targetPosition: Position.Left,
+      curvature: 0.25,
+    })[0],
   }));
 
   useDiagram((state) => {
@@ -123,7 +127,15 @@ export const StatefulEdge: FC<{ edge: EdgeType }> = ({ edge }) => {
       api.set({
         start: [start.x, start.y],
         end: [end.x, end.y],
-        d: getCubicBezierPathData(start, end),
+        d: getBezierPath({
+          sourceX: start.x,
+          sourceY: start.y,
+          targetX: end.x,
+          targetY: end.y,
+          sourcePosition: Position.Right,
+          targetPosition: Position.Left,
+          curvature: 0.25,
+        })[0],
       });
     }
   });
