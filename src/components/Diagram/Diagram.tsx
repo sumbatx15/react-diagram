@@ -19,7 +19,6 @@ export const Diagram: FC = () => {
   const addNode = useDiagram((state) => state.addNode);
   const addNodes = useDiagram((state) => state.addNodes);
   const addEdges = useDiagram((state) => state.addEdges);
-
   const handleAdd = () => {
     addNode(createNode());
     addNode(createNode());
