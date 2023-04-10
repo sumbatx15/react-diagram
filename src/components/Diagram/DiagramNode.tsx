@@ -19,7 +19,6 @@ const NodeContextProvider: React.FC<{
   children: React.ReactNode;
   nodeId: string;
 }> = ({ children, nodeId }) => {
-  console.log("nodeId:", nodeId);
   return (
     <NodeContext.Provider value={{ nodeId }}>{children}</NodeContext.Provider>
   );
@@ -38,29 +37,31 @@ export const useNode = (
   }, equals) as unknown as DiagramNode;
 };
 
-export const DiagramNodeFC: FC<{ nodeId: string }> = ({ nodeId }) => {
-  return (
-    <NodeContextProvider nodeId={nodeId}>
-      <Layer id={nodeId}>
-        <>
-          <Stack
-            rounded="xl"
-            pos="relative"
-            bg="gray.700"
-            p="4"
-            py="2"
-            spacing="0"
-          >
-            <Box pos="absolute" left="-10px">
-              <Handle id="in" type="target" />
-            </Box>
-            <Text>{nodeId}</Text>
-            <Box pos="absolute" right="-10px" top="20px">
-              <Handle id="out" type="source" />
-            </Box>
-          </Stack>
-        </>
-      </Layer>
-    </NodeContextProvider>
-  );
-};
+export const DiagramNodeFC: FC<{ nodeId: string }> = React.memo(
+  ({ nodeId }) => {
+    return (
+      <NodeContextProvider nodeId={nodeId}>
+        <Layer id={nodeId}>
+          <>
+            <Stack
+              rounded="xl"
+              pos="relative"
+              bg="gray.700"
+              p="4"
+              py="2"
+              spacing="0"
+            >
+              <Box pos="absolute" left="-10px">
+                <Handle id="in" type="target" />
+              </Box>
+              <Text>{nodeId}</Text>
+              <Box pos="absolute" right="-10px" top="20px">
+                <Handle id="out" type="source" />
+              </Box>
+            </Stack>
+          </>
+        </Layer>
+      </NodeContextProvider>
+    );
+  }
+);

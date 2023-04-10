@@ -243,54 +243,32 @@ export const useDiagram = createDiagramStore();
 // @ts-ignore
 window.useDiagram = useDiagram;
 
-useDiagram.subscribe((state, prev) => {
-  // const d = updatedDiff(prev.nodePositions, state.nodePositions);
-  state.edges.forEach((edge) => {
-    updateEdgePositionOnNodeMove(state, prev, edge);
-  });
-  // state.edges.forEach((edge) => {
-  //   const { source, target, id } = edge;
-  //   const [
-  //     sourceNodePos,
-  //     oldSourceNodePos,
-  //     targetNodePos,
-  //     oldTargetNodePos,
-  //     sourceNodeSize,
-  //     oldSourceNodeSize,
-  //     targetNodeSize,
-  //     oldTargetNodeSize,
-  //   ] = [
-  //     state.nodePositions[source],
-  //     prev.nodePositions[source],
-  //     state.nodePositions[target],
-  //     prev.nodePositions[target],
-  //     state.nodeSizes[source],
-  //     prev.nodeSizes[source],
-  //     state.nodeSizes[target],
-  //     prev.nodeSizes[target],
-  //   ];
+useDiagram.subscribe(
+  (state) => state.nodeInternals,
+  (internals) => {
+    console.log("internals fired", internals);
+  },
+  {
+    equalityFn: shallow,
+  }
+);
 
-  //   if (
-  //     !shallow(sourceNodePos, oldSourceNodePos) ||
-  //     !shallow(targetNodePos, oldTargetNodePos) ||
-  //     !state.edgePositions[id]
-  //   ) {
-  //     const sourceSelector = `[data-id="${edge.sourceHandle}"][data-node-id="${edge.source}"]`;
-  //     const targetSelector = `[data-id="${edge.targetHandle}"][data-node-id="${edge.target}"]`;
-  //     const sourceRect = document
-  //       .querySelector(sourceSelector)
-  //       ?.getBoundingClientRect();
-  //     const targetRect = document
-  //       .querySelector(targetSelector)
-  //       ?.getBoundingClientRect();
-  //     if (sourceRect && targetRect) {
-  //       const start = getInDiagramPosition(getCenterFromRect(sourceRect));
-  //       const end = getInDiagramPosition(getCenterFromRect(targetRect));
-  //       useDiagram.getState().updateEdgePosition(edge.id, { start, end });
-  //     }
-  //   }
-  // });
-});
+// useDiagram.subscribe(
+//   (state) => ({
+//     nodePositions: state.nodePositions,
+//     elementRects: state.elementRects,
+//   }),
+//   () => {
+//     console.log("subscribe fired");
+//     const state = useDiagram.getState();
+//     state.edges.forEach((edge) => {
+//       updateEdgePositionOnNodeMove(state, edge);
+//     });
+//   },
+//   {
+//     equalityFn: shallow,
+//   }
+// );
 
 interface DiagramStates {
   diagram: Record<string, UseBoundStore<StoreApi<DiagramState>>>;

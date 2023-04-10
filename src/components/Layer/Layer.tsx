@@ -14,7 +14,7 @@ export const Layer: FC<LayerProps> = ({ id, children }) => {
   const ref = useRef<HTMLElement>(null);
 
   useResizeObserver(ref, (entry) => {
-    useDiagram.getState().setElement(id, entry.target, entry.contentRect);
+    useDiagram.getState().setNodeElement(id, entry.target);
   });
 
   const [styles, api] = useSpring(() => ({
@@ -36,7 +36,7 @@ export const Layer: FC<LayerProps> = ({ id, children }) => {
 
   useGesture(
     {
-      onDrag: ({ delta: [x, y], event, canceled, cancel }) => {
+      onDrag: ({ delta: [x, y], event, canceled, first, cancel }) => {
         if (canceled) return;
         if (
           event.target instanceof HTMLInputElement ||
@@ -45,6 +45,7 @@ export const Layer: FC<LayerProps> = ({ id, children }) => {
           return cancel();
 
         event.stopPropagation();
+        event.stopImmediatePropagation();
         const scale = useDiagram.getState().viewport.scale;
         const newX = styles.x.get() + x / scale;
         const newY = styles.y.get() + y / scale;

@@ -14,6 +14,7 @@ import { Edge, EdgeContainer, UserEdge } from "./edge";
 import { createNodesAndEdges } from "./utils";
 export const Diagram: FC = () => {
   const updateScale = useDiagram((state) => state.viewport.updateScale);
+  // const viewport = useDiagram((state) => state.viewport);
   const updatePosition = useDiagram((state) => state.viewport.updatePosition);
   const nodeIds = useDiagram((state) => state.nodeIds);
   const addNode = useDiagram((state) => state.addNode);
@@ -21,7 +22,7 @@ export const Diagram: FC = () => {
   const addEdges = useDiagram((state) => state.addEdges);
   const handleAdd = () => {
     addNode(createNode());
-    addNode(createNode());
+    // addNode(createNode());
     // let nodeId = 0;
     // const nodes: DiagramNode[] = [];
     // const edges: IEdge[] = [];
@@ -79,7 +80,6 @@ export const Diagram: FC = () => {
   useGesture(
     {
       onDoubleClickCapture: ({ event }) => {
-        console.log("event:", event);
         const newScale = Math.exp(100 * -0.00125) * styles.scale.get();
         api.start({
           scale: newScale,
@@ -175,8 +175,11 @@ export const Diagram: FC = () => {
       }}
     >
       <Box zIndex={100} pos="absolute">
-        {/* <button onClick={handleAdd}>addnode</button> */}
-        <button onClick={addMore}>add more</button>
+        <button onClick={handleAdd}>addnode</button>
+        {/* <button onClick={addMore}>add more</button> */}
+        {/* <p>
+          {viewport.scale} | {JSON.stringify(viewport.position)}
+        </p> */}
         <FullscreenBtn target={containerRef} />
       </Box>
       <animated.div

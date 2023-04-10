@@ -21,13 +21,7 @@ export const Handle: FC<HandleProps> = ({ id, type }) => {
   const { nodeId } = useNodeContext();
 
   useResizeObserver(targetRef, (entry) => {
-    useDiagram
-      .getState()
-      .setElement(
-        createHandleElementId(nodeId, id),
-        entry.target,
-        entry.contentRect
-      );
+    useDiagram.getState().setHandleElement(nodeId, id, entry.target);
   });
 
   useGesture(

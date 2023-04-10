@@ -87,7 +87,6 @@ export const createEdgePosition = (state: StoreState, edge: Edge) => {
 
   return createEdgePositionFromRects(sourceHandleRect, targetHandleRect);
 };
-window.createEdgePosition = createEdgePosition;
 
 export const createEdgePositionFromRects = (
   sourceHandleRect: DOMRect,
@@ -141,19 +140,63 @@ const hasChanges = (state: StoreState, prevState: StoreState, edge: Edge) => {
   );
 };
 
-export const updateEdgePositionOnNodeMove = (
-  state: StoreState,
-  prev: StoreState,
-  edge: Edge
-) => {
+export const updateEdgePositionOnNodeMove = (state: StoreState, edge: Edge) => {
   if (!areAllElementsVisible(state, edge)) return;
-  const changed = hasChanges(state, prev, edge);
-  console.log("changed:", changed);
-  if (!hasChanges(state, prev, edge)) return;
+  // const changed = hasChanges(state, prev, edge);
+  // console.log("changed:", changed);
+  // if (!hasChanges(state, prev, edge)) return;
 
   setTimeout(() => {
     useDiagram
       .getState()
       .updateEdgePosition(edge.id, createEdgePosition(state, edge));
   }, 10);
+};
+
+export type DOMRectLike = Pick<
+  DOMRect,
+  "x" | "y" | "width" | "height" | "top" | "left" | "bottom" | "right"
+>;
+
+export const getUnscaledDOMRect = (
+  rect: DOMRectLike,
+  scale: number
+): DOMRectLike => {
+  if (scale === 1) return rect;
+  return {
+    x: rect.x / scale,
+    y: rect.y / scale,
+    width: rect.width / scale,
+    height: rect.height / scale,
+    top: rect.top / scale,
+    left: rect.left / scale,
+    bottom: rect.bottom / scale,
+    right: rect.right / scale,
+  };
+};
+
+interface GetRelativePositionOptions {
+  containerRect: DOMRectLike;
+  elementRect: DOMRectLike;
+}
+
+export const getRelativePosition = ({
+  containerRect,
+  elementRect,
+}: GetRelativePositionOptions) => {
+  return {
+    x: elementRect.x - containerRect.x,
+    y: elementRect.y - containerRect.y,
+  };
+};
+
+export const getUnscaledRelativePosition = ({
+  containerRect,
+  elementRect,
+  scale,
+}: GetRelativePositionOptions & { scale: number }) => {
+  return getRelativePosition({
+    containerRect: getUnscaledDOMRect(containerRect, scale),
+    elementRect: getUnscaledDOMRect(elementRect, scale),
+  });
 };
