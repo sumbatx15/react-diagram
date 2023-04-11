@@ -4,6 +4,7 @@ import { FC, useRef } from "react";
 import { useDiagram } from "../../store/diagramStore";
 import { useNode } from "../Diagram/DiagramNode";
 import useResizeObserver from "@react-hook/resize-observer";
+import { useOnResize } from "../../hooks/sizeObserver";
 
 export interface LayerProps {
   id: string;
@@ -13,8 +14,8 @@ export interface LayerProps {
 export const Layer: FC<LayerProps> = ({ id, children }) => {
   const ref = useRef<HTMLElement>(null);
 
-  useResizeObserver(ref, (entry) => {
-    useDiagram.getState().setNodeElement(id, entry.target);
+  useResizeObserver(ref, (...args) => {
+    useDiagram.getState().setNodeElement(id, ref.current!);
   });
 
   const [styles, api] = useSpring(() => ({
@@ -22,22 +23,21 @@ export const Layer: FC<LayerProps> = ({ id, children }) => {
     y: useDiagram.getState().getNode(id)?.position.y || 0,
   }));
 
-  useNode((node) => {
-    if (
-      node.position.x !== styles.x.get() ||
-      node.position.y !== styles.y.get()
-    ) {
+  useDiagram((state) => {
+    const position = state.getNodePosition(id);
+    if (!position) return;
+    if (position.x !== styles.x.get() || position.y !== styles.y.get()) {
       api.start({
-        x: node.position.x,
-        y: node.position.y,
+        x: position.x,
+        y: position.y,
       });
     }
   });
 
   useGesture(
     {
-      onDrag: ({ delta: [x, y], event, canceled, first, cancel }) => {
-        if (canceled) return;
+      onDrag: ({ delta: [x, y], event, canceled, first, cancel, pinching }) => {
+        if (canceled || pinching) return;
         if (
           event.target instanceof HTMLInputElement ||
           (event.target as HTMLElement).classList.contains("handle")

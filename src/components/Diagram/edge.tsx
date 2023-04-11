@@ -4,9 +4,14 @@ import {
   SpringValue,
   useSpring,
 } from "@react-spring/web";
-import { ComponentProps, FC, ReactNode } from "react";
+import { ComponentProps, FC, memo, ReactNode } from "react";
 import { Edge as EdgeType, useDiagram } from "../../store/diagramStore";
-import { createZeroEdgePosition, Vector } from "../../store/utils";
+import {
+  createEdgePosition,
+  createZeroEdgePosition,
+  createZeroVector,
+  Vector,
+} from "../../store/utils";
 import { getBezierPath, Position } from "./utils";
 
 // create type that takes a type and returns the same type but the values are union of the same type and SpringValue
@@ -96,35 +101,28 @@ export const Edge: FC<
   );
 };
 
-export const StatefulEdge: FC<{ edge: EdgeType }> = ({ edge }) => {
+export const StatefulEdge: FC<{ edge: EdgeType }> = memo(({ edge }) => {
+  const { start, end } = createEdgePosition(useDiagram.getState(), edge);
   const [styles, api] = useSpring(() => ({
-    start: [0, 0],
-    end: [0, 0],
-    d: getBezierPath({
-      sourceX: 0,
-      sourceY: 0,
-      targetX: 0,
-      targetY: 0,
-      sourcePosition: Position.Right,
-      targetPosition: Position.Left,
-      curvature: 0.25,
-    })[0],
+    start: [start.x, start.y],
+    end: [end.x, end.y],
+    d: getCubicBezierPathData(start, end),
   }));
 
   useDiagram((state) => {
-    const edgePosition = state.edgePositions[edge.id];
-    if (!state.edgePositions[edge.id]) return;
-    const { start, end } = edgePosition;
-
-    //Check if edge data is different from the spring values
-
+    const start =
+      state.getHandleCenter(edge.source, edge.sourceHandle) ||
+      createZeroVector();
+    const end =
+      state.getHandleCenter(edge.target, edge.targetHandle) ||
+      createZeroVector();
     if (
       start.x !== styles.start.get()[0] ||
       start.y !== styles.start.get()[1] ||
       end.x !== styles.end.get()[0] ||
       end.y !== styles.end.get()[1]
     ) {
-      api.set({
+      api.start({
         start: [start.x, start.y],
         end: [end.x, end.y],
         d: getBezierPath({
@@ -140,8 +138,34 @@ export const StatefulEdge: FC<{ edge: EdgeType }> = ({ edge }) => {
     }
   });
 
-  return <Edge d={styles.d} />;
-};
+  return (
+    <animated.path
+      onClick={console.log}
+      style={{
+        zIndex: 100,
+        pointerEvents: "auto",
+        touchAction: "none",
+      }}
+      d={styles.d}
+      stroke="black"
+      strokeWidth="1"
+      strokeLinecap="round"
+      // strokeDasharray="10 6"
+      // strokeDashoffset="0"
+      fill="none"
+    >
+      {/* <animate
+        attributeName="stroke-dashoffset"
+        attributeType="XML"
+        from="0"
+        to="-16"
+        dur="0.45s"
+        repeatCount="indefinite"
+        begin="0s"
+      /> */}
+    </animated.path>
+  );
+});
 
 export const UserEdge: FC = () => {
   const isVisible = useDiagram((state) => state.isDraggedEdgeVisible);

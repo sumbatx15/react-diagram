@@ -1,7 +1,8 @@
 import { AbsoluteCenter, Circle } from "@chakra-ui/react";
-import useResizeObserver from "@react-hook/resize-observer";
+import useResizeObserver from "use-resize-observer";
 import { useGesture } from "@use-gesture/react";
 import { useRef, FC } from "react";
+import { useOnResize } from "../../hooks/sizeObserver";
 import { useDiagram } from "../../store/diagramStore";
 import { createEdge } from "../../store/utils";
 import { createHandleElementId } from "../../utils";
@@ -13,20 +14,20 @@ interface HandleProps {
 }
 
 export const Handle: FC<HandleProps> = ({ id, type }) => {
-  const targetRef = useRef<HTMLDivElement>(null);
-  const isActive = useDiagram((state) => {
-    return state.isDraggedEdgeVisible;
-  });
-
+  const ref = useRef<HTMLDivElement>(null);
   const { nodeId } = useNodeContext();
 
-  useResizeObserver(targetRef, (entry) => {
-    useDiagram.getState().setHandleElement(nodeId, id, entry.target);
+  useResizeObserver({
+    ref,
+    onResize: () => {
+      useDiagram.getState().setHandleElement(nodeId, id, ref.current!);
+    },
   });
 
   useGesture(
     {
-      onDrag: ({ xy, event, first, canceled }) => {
+      onDrag: ({ xy, event, first, canceled, pinching }) => {
+        if (canceled || pinching) return;
         const state = useDiagram.getState();
         if (first) {
           const rect = (
@@ -77,7 +78,7 @@ export const Handle: FC<HandleProps> = ({ id, type }) => {
       onDragEnd: ({ xy }) => {
         const element = document.elementFromPoint(...xy);
 
-        const [from, to] = [targetRef.current, element] as HTMLElement[];
+        const [from, to] = [ref.current, element] as HTMLElement[];
         if (
           from &&
           to &&
@@ -102,7 +103,7 @@ export const Handle: FC<HandleProps> = ({ id, type }) => {
       },
     },
     {
-      target: targetRef,
+      target: ref,
       eventOptions: {
         passive: false,
       },
@@ -112,7 +113,7 @@ export const Handle: FC<HandleProps> = ({ id, type }) => {
     <Circle
       cursor="crosshair"
       className="handle"
-      ref={targetRef}
+      ref={ref}
       zIndex="100"
       size="16px"
       bg="white"

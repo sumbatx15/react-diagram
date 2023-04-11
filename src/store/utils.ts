@@ -69,6 +69,10 @@ export const createZeroEdgePosition = () => {
     end: { x: 0, y: 0 },
   };
 };
+
+export const createZeroVector = () => {
+  return { x: 0, y: 0 };
+};
 export const getSourceHandleRect = (state: StoreState, edge: Edge) => {
   return state.elements[
     createHandleElementId(edge.source, edge.sourceHandle)
@@ -82,10 +86,14 @@ export const getTargetHandleRect = (state: StoreState, edge: Edge) => {
 };
 
 export const createEdgePosition = (state: StoreState, edge: Edge) => {
-  const sourceHandleRect = getSourceHandleRect(state, edge);
-  const targetHandleRect = getTargetHandleRect(state, edge);
-
-  return createEdgePositionFromRects(sourceHandleRect, targetHandleRect);
+  const start =
+    state.getHandleCenter(edge.source, edge.sourceHandle) || createZeroVector();
+  const end =
+    state.getHandleCenter(edge.target, edge.targetHandle) || createZeroVector();
+  return {
+    start,
+    end,
+  };
 };
 
 export const createEdgePositionFromRects = (
@@ -199,4 +207,17 @@ export const getUnscaledRelativePosition = ({
     containerRect: getUnscaledDOMRect(containerRect, scale),
     elementRect: getUnscaledDOMRect(elementRect, scale),
   });
+};
+interface GetHandleCenterOptions {
+  nodePosition: Vector;
+  handleRelativeCenterOffset: Vector;
+}
+export const getHandleCenter = ({
+  nodePosition,
+  handleRelativeCenterOffset,
+}: GetHandleCenterOptions) => {
+  return {
+    x: nodePosition.x + handleRelativeCenterOffset.x,
+    y: nodePosition.y + handleRelativeCenterOffset.y,
+  };
 };

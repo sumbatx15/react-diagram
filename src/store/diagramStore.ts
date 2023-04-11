@@ -4,6 +4,7 @@ import {
   DiagramNode,
   EdgePosition,
   updateEdgePositionOnNodeMove,
+  getHandleCenter,
 } from "./utils";
 import { create, StoreApi, UseBoundStore } from "zustand";
 import { immer } from "zustand/middleware/immer";
@@ -243,26 +244,47 @@ export const useDiagram = createDiagramStore();
 // @ts-ignore
 window.useDiagram = useDiagram;
 
-useDiagram.subscribe(
-  (state) => state.nodeInternals,
-  (internals) => {
-    console.log("internals fired", internals);
-  },
-  {
-    equalityFn: shallow,
-  }
-);
+// useDiagram.subscribe(
+//   (state) => state.nodeInternals,
+//   (internals) => {
+//   },
+//   {
+//     equalityFn: shallow,
+//   }
+// );
 
 // useDiagram.subscribe(
 //   (state) => ({
 //     nodePositions: state.nodePositions,
-//     elementRects: state.elementRects,
+//     nodeInternals: state.nodeInternals,
 //   }),
 //   () => {
-//     console.log("subscribe fired");
 //     const state = useDiagram.getState();
 //     state.edges.forEach((edge) => {
-//       updateEdgePositionOnNodeMove(state, edge);
+//       const { source, sourceHandle, target, targetHandle } = edge;
+//       const sourceInternals = state.getNodeInternals(source);
+//       const targetInternals = state.getNodeInternals(target);
+
+//       const sourceDimensions = sourceInternals.handlesDimensions[sourceHandle];
+
+//       const targetDimensions = targetInternals.handlesDimensions[targetHandle];
+
+//       const start = getHandleCenter({
+//         unscaledNodeRect: sourceInternals.unscaledNodeRect,
+//         handleRelativeCenterOffset: sourceDimensions.relativeCenterOffset,
+//       });
+//       const end = getHandleCenter({
+//         unscaledNodeRect: targetInternals.unscaledNodeRect,
+//         handleRelativeCenterOffset: targetDimensions.relativeCenterOffset,
+//       });
+//       console.log("start:", start);
+//       console.log("end:", end);
+//       state.updateEdgePosition(edge.id, {
+//         start: start,
+//         end: end,
+//       });
+
+//       // updateEdgePositionOnNodeMove(state, edge);
 //     });
 //   },
 //   {

@@ -20,39 +20,24 @@ export const Diagram: FC = () => {
   const addNode = useDiagram((state) => state.addNode);
   const addNodes = useDiagram((state) => state.addNodes);
   const addEdges = useDiagram((state) => state.addEdges);
+
+  const randomizePositions = () => {
+    const positions = Object.entries(
+      useDiagram.getState().nodePositions
+    ).reduce((acc, [id, pos]) => {
+      const x = Math.random() * 2000;
+      const y = Math.random() * 1000;
+      acc[id] = { x, y };
+      return acc;
+    }, {} as Record<string, { x: number; y: number }>);
+    useDiagram.setState({ nodePositions: positions });
+  };
   const handleAdd = () => {
     addNode(createNode());
-    // addNode(createNode());
-    // let nodeId = 0;
-    // const nodes: DiagramNode[] = [];
-    // const edges: IEdge[] = [];
-    // Array.from({ length: 10 }).forEach((_, i) => {
-    //   Array.from({ length: 30 }).forEach((_, j) => {
-    //     const node = {
-    //       ...createNode(),
-    //       id: nodeId.toString(),
-    //       position: {
-    //         x: 200 * i,
-    //         y: 100 * j,
-    //       },
-    //     };
-    //     nodes.push(node);
-    //     edges.push({
-    //       id: `${i}-${j}-edge`,
-    //       source: node.id,
-    //       target: (++nodeId).toString(),
-    //       sourceHandle: "out",
-    //       targetHandle: "in",
-    //       data: "",
-    //     } as IEdge);
-    //   });
-    // });
-    // addNodes(nodes);
-    // addEdges(edges);
   };
 
   const addMore = () => {
-    const { edges, nodes } = createNodesAndEdges();
+    const { edges, nodes } = createNodesAndEdges(10, 20);
     addNodes(nodes);
     addEdges(edges);
   };
@@ -176,10 +161,8 @@ export const Diagram: FC = () => {
     >
       <Box zIndex={100} pos="absolute">
         <button onClick={handleAdd}>addnode</button>
-        {/* <button onClick={addMore}>add more</button> */}
-        {/* <p>
-          {viewport.scale} | {JSON.stringify(viewport.position)}
-        </p> */}
+        <button onClick={addMore}>add more</button>
+        <button onClick={() => randomizePositions()}>randomize</button>
         <FullscreenBtn target={containerRef} />
       </Box>
       <animated.div

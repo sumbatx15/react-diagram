@@ -5,6 +5,7 @@ import React, { createContext, useContext } from "react";
 import { Layer } from "../Layer/Layer";
 import { Handle } from "./handle";
 import { Box, Stack, Text } from "@chakra-ui/react";
+import { NodeInternals } from "../../store/nodeInternalsSlice";
 interface NodeContextType {
   nodeId: string;
 }
@@ -44,7 +45,8 @@ export const DiagramNodeFC: FC<{ nodeId: string }> = React.memo(
         <Layer id={nodeId}>
           <>
             <Stack
-              rounded="xl"
+              rounded="md"
+              // shadow="xl"
               pos="relative"
               bg="gray.700"
               p="4"
