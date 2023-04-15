@@ -122,7 +122,7 @@ export const StatefulEdge: FC<{ edge: EdgeType }> = memo(({ edge }) => {
       end.x !== styles.end.get()[0] ||
       end.y !== styles.end.get()[1]
     ) {
-      api.start({
+      api.set({
         start: [start.x, start.y],
         end: [end.x, end.y],
         d: getBezierPath({

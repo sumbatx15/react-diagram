@@ -1,14 +1,17 @@
 import { SpringValues } from "@react-spring/web";
+import { merge } from "lodash-es";
 import { MutableRefObject } from "react";
 import { shallow } from "zustand/shallow";
 import { StoreState } from ".";
 import { createHandleElementId } from "../utils";
+import { singletonIntersectionObserver } from "../utils/SingletonIntersectionObserver";
 import {
   Edge,
   getCenterFromRect,
   getInDiagramPosition,
   useDiagram,
 } from "./diagramStore";
+import { ElementsSlice } from "./elementsSlice";
 import { ILayer } from "./layersStore";
 
 export const isConstrainProportions = (type: ILayer["type"]) => {
@@ -73,17 +76,6 @@ export const createZeroEdgePosition = () => {
 export const createZeroVector = () => {
   return { x: 0, y: 0 };
 };
-export const getSourceHandleRect = (state: StoreState, edge: Edge) => {
-  return state.elements[
-    createHandleElementId(edge.source, edge.sourceHandle)
-  ].getBoundingClientRect();
-};
-
-export const getTargetHandleRect = (state: StoreState, edge: Edge) => {
-  return state.elements[
-    createHandleElementId(edge.target, edge.targetHandle)
-  ].getBoundingClientRect();
-};
 
 export const createEdgePosition = (state: StoreState, edge: Edge) => {
   const start =
@@ -96,81 +88,32 @@ export const createEdgePosition = (state: StoreState, edge: Edge) => {
   };
 };
 
-export const createEdgePositionFromRects = (
-  sourceHandleRect: DOMRect,
-  targetHandleRect: DOMRect
-) => {
-  return {
-    start: getInDiagramPosition(getCenterFromRect(sourceHandleRect)),
-    end: getInDiagramPosition(getCenterFromRect(targetHandleRect)),
-  };
-};
-
-const areAllElementsVisible = (state: StoreState, edge: Edge) => {
-  return (
-    state.elements[edge.source] &&
-    state.elements[edge.target] &&
-    state.elements[createHandleElementId(edge.source, edge.sourceHandle)] &&
-    state.elements[createHandleElementId(edge.target, edge.targetHandle)]
-  );
-};
-
-const hasChanges = (state: StoreState, prevState: StoreState, edge: Edge) => {
-  return (
-    !shallow(
-      state.nodePositions[edge.source],
-      prevState.nodePositions[edge.source]
-    ) ||
-    !shallow(
-      state.nodePositions[edge.target],
-      prevState.nodePositions[edge.target]
-    ) ||
-    !shallow(
-      state.elementRects[edge.source],
-      prevState.elementRects[edge.source]
-    ) ||
-    !shallow(
-      state.elementRects[edge.target],
-      prevState.elementRects[edge.target]
-    ) ||
-    !shallow(
-      state.elementRects[createHandleElementId(edge.source, edge.sourceHandle)],
-      prevState.elementRects[
-        createHandleElementId(edge.source, edge.sourceHandle)
-      ]
-    ) ||
-    !shallow(
-      state.elementRects[createHandleElementId(edge.target, edge.targetHandle)],
-      prevState.elementRects[
-        createHandleElementId(edge.target, edge.targetHandle)
-      ]
-    )
-  );
-};
-
-export const updateEdgePositionOnNodeMove = (state: StoreState, edge: Edge) => {
-  if (!areAllElementsVisible(state, edge)) return;
-  // const changed = hasChanges(state, prev, edge);
-  // console.log("changed:", changed);
-  // if (!hasChanges(state, prev, edge)) return;
-
-  setTimeout(() => {
-    useDiagram
-      .getState()
-      .updateEdgePosition(edge.id, createEdgePosition(state, edge));
-  }, 10);
-};
-
 export type DOMRectLike = Pick<
   DOMRect,
   "x" | "y" | "width" | "height" | "top" | "left" | "bottom" | "right"
 >;
 
+export const getBoundingClientRect = (element: HTMLElement) => {
+  return singletonIntersectionObserver.observe(element);
+};
+export const convertToDOMRectLike = (rect: DOMRectLike): DOMRectLike => {
+  return {
+    x: rect.x,
+    y: rect.y,
+    width: rect.width,
+    height: rect.height,
+    top: rect.top,
+    left: rect.left,
+    bottom: rect.bottom,
+    right: rect.right,
+  };
+};
+
 export const getUnscaledDOMRect = (
   rect: DOMRectLike,
   scale: number
 ): DOMRectLike => {
-  if (scale === 1) return rect;
+  if (scale === 1) return convertToDOMRectLike(rect);
   return {
     x: rect.x / scale,
     y: rect.y / scale,
@@ -219,5 +162,115 @@ export const getHandleCenter = ({
   return {
     x: nodePosition.x + handleRelativeCenterOffset.x,
     y: nodePosition.y + handleRelativeCenterOffset.y,
+  };
+};
+
+export interface HandleDimensions {
+  relativePosition: Vector;
+  relativeCenterOffset: Vector;
+}
+
+export const getUnscaledRectsForHandles = async (
+  handleElements: Record<string, HTMLElement>,
+  scale: number
+): Promise<Record<string, DOMRectLike>> => {
+  const unscaledRects: Record<string, DOMRectLike> = {};
+
+  for (const [handleId, el] of Object.entries(handleElements)) {
+    const rect = getUnscaledDOMRect(await getBoundingClientRect(el), scale);
+    unscaledRects[handleId] = rect;
+  }
+
+  return unscaledRects;
+};
+
+export const generateHandleDimensions = async ({
+  nodeUnscaledRects,
+  handleElements,
+  scale,
+}: Pick<ElementsSlice, "nodeUnscaledRects" | "handleElements"> & {
+  scale: number;
+}) => {
+  const result: Pick<
+    ElementsSlice,
+    "handleUnscaledRects" | "handleDimensions"
+  > = {
+    handleUnscaledRects: {},
+    handleDimensions: {},
+  };
+
+  const promises = [];
+
+  for (const [nodeId, nodeRect] of Object.entries(nodeUnscaledRects)) {
+    const nodeHandleElements = handleElements[nodeId];
+    if (!nodeHandleElements) continue;
+
+    promises.push(
+      getUnscaledRectsForHandles(nodeHandleElements, scale).then(
+        (handleUnscaledRects) => {
+          console.log("handleUnscaledRects:", handleUnscaledRects);
+
+          result.handleUnscaledRects = merge(result.handleUnscaledRects, {
+            [nodeId]: handleUnscaledRects,
+          });
+
+          result.handleDimensions = merge(result.handleDimensions, {
+            [nodeId]: Object.entries(handleUnscaledRects).reduce(
+              (acc, [handleId, handleRect]) => {
+                return {
+                  ...acc,
+                  [handleId]: getHandleDimension(nodeRect, handleRect),
+                };
+              },
+              {}
+            ),
+          });
+        }
+      )
+    );
+  }
+
+  await Promise.all(promises);
+
+  return result;
+};
+export const generateHandleDimensionsOnHandlesResize = ({
+  nodeUnscaledRects,
+  handleUnscaledRects,
+}: Pick<ElementsSlice, "nodeUnscaledRects" | "handleUnscaledRects">): Record<
+  string,
+  Record<string, HandleDimensions>
+> => {
+  return Object.entries(nodeUnscaledRects).reduce((acc, [nodeId, nodeRect]) => {
+    const nodeHandleRects = handleUnscaledRects[nodeId];
+    if (!nodeHandleRects) return acc;
+    return merge(acc, {
+      [nodeId]: Object.entries(nodeHandleRects).reduce(
+        (acc, [handleId, handleRect]) => {
+          return merge(acc, {
+            [handleId]: getHandleDimension(nodeRect, handleRect),
+          });
+        },
+        {}
+      ),
+    });
+  }, {});
+};
+
+export const getHandleDimension = (
+  unscaledNodeRect: DOMRectLike,
+  unscaledHandleRect: DOMRectLike
+) => {
+  const relativePosition = getRelativePosition({
+    containerRect: unscaledNodeRect,
+    elementRect: unscaledHandleRect,
+  });
+
+  return {
+    relativePosition: relativePosition,
+    relativeCenterOffset: {
+      x: relativePosition.x + unscaledHandleRect.width / 2,
+      y: relativePosition.y + unscaledHandleRect.height / 2,
+    },
   };
 };

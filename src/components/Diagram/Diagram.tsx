@@ -18,8 +18,8 @@ export const Diagram: FC = () => {
   const updatePosition = useDiagram((state) => state.viewport.updatePosition);
   const nodeIds = useDiagram((state) => state.nodeIds);
   const addNode = useDiagram((state) => state.addNode);
-  const addNodes = useDiagram((state) => state.addNodes);
-  const addEdges = useDiagram((state) => state.addEdges);
+  const setNodes = useDiagram((state) => state.setNodes);
+  const setEdges = useDiagram((state) => state.setEdges);
 
   const randomizePositions = () => {
     const positions = Object.entries(
@@ -38,8 +38,8 @@ export const Diagram: FC = () => {
 
   const addMore = () => {
     const { edges, nodes } = createNodesAndEdges(10, 20);
-    addNodes(nodes);
-    addEdges(edges);
+    setNodes(nodes);
+    setEdges(edges);
   };
 
   const containerRef = useRef<HTMLDivElement>(null);

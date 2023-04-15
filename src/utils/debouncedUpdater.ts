@@ -1,43 +1,33 @@
-// import { debounce } from "lodash-es";
+import { debounce } from "lodash-es";
 
-// class DebouncedUpdater<
-//   TState,
-//   TStateUpdater extends (state: TState, ...args: any[]) => any,
-//   TCreateNewState extends () => TState,
-//   TCallback extends (state: TState) => void
-// > {
-//   private state: TState;
-//   private updateState: TStateUpdater;
-//   private processQueue: (cb: TCallback) => void;
+export type DebouncedUpdater<TArgs extends any[] = any[]> = {
+  update: (...args: TArgs) => void;
+};
 
-//   constructor(
-//     private create: TCreateNewState,
-//     private updater: TStateUpdater,
-//     private cb: TCallback,
-//     private timeout = 0
-//   ) {
-//     this.state = this.create();
+export const createDebouncedUpdater = <
+  TState,
+  TCallback extends (state: TState) => void,
+  TArgs extends any[] = any[]
+>(options: {
+  create: () => TState;
+  update: (currentState: TState, ...args: TArgs) => TState | Promise<TState>;
+  onUpdate: TCallback;
+  timeout: number;
+}) => {
+  let state = options.create();
 
-//     this.processQueue = debounce(() => {
-//       this.cb(this.state);
-//       this.state = this.create();
-//     }, 0);
+  const process = debounce(() => {
+    options.onUpdate(state);
+    state = options.create();
+  }, options.timeout);
 
-//     this.updateState = (...args) => {
-//       this.updater(this.state, ...args);
-//       this.processQueue(this.cb);
-//     };
-//   }
-// }
+  const update = async (...args: TArgs) => {
+    const newState = await options.update(state, ...args);
+    state = newState;
+    process();
+  };
 
-// const debouncedUpdater = new DebouncedUpdater(
-//   () => ({}), // this is a new state
-//   (state, { id, element }) => {
-//     // this is the state updater
-//     state[id] = element;
-//   },
-//   (state) => {
-//     // this is the callback
-//     // do something with the built state
-//   }
-// );
+  return {
+    update,
+  };
+};

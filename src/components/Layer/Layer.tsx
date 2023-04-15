@@ -14,20 +14,21 @@ export interface LayerProps {
 export const Layer: FC<LayerProps> = ({ id, children }) => {
   const ref = useRef<HTMLElement>(null);
 
-  useResizeObserver(ref, (...args) => {
-    useDiagram.getState().setNodeElement(id, ref.current!);
+  useResizeObserver(ref, (entry, re) => {
+    useDiagram.getState().setNodeElement2(id, ref.current!, entry.contentRect);
   });
 
   const [styles, api] = useSpring(() => ({
     x: useDiagram.getState().getNode(id)?.position.x || 0,
     y: useDiagram.getState().getNode(id)?.position.y || 0,
+    zIndex: 0,
   }));
 
   useDiagram((state) => {
     const position = state.getNodePosition(id);
     if (!position) return;
     if (position.x !== styles.x.get() || position.y !== styles.y.get()) {
-      api.start({
+      api.set({
         x: position.x,
         y: position.y,
       });
@@ -36,7 +37,16 @@ export const Layer: FC<LayerProps> = ({ id, children }) => {
 
   useGesture(
     {
-      onDrag: ({ delta: [x, y], event, canceled, first, cancel, pinching }) => {
+      onDrag: ({
+        delta: [x, y],
+        event,
+        canceled,
+        first,
+        cancel,
+        pinching,
+        ...args
+      }) => {
+        console.log("args:", args);
         if (canceled || pinching) return;
         if (
           event.target instanceof HTMLInputElement ||
@@ -52,8 +62,14 @@ export const Layer: FC<LayerProps> = ({ id, children }) => {
         api.set({
           x: newX,
           y: newY,
+          zIndex: 1,
         });
         useDiagram.getState().updateNodePosition(id, { x: newX, y: newY });
+      },
+      onDragEnd: () => {
+        api.set({
+          zIndex: 0,
+        });
       },
     },
     {

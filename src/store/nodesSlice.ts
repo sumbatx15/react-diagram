@@ -1,3 +1,4 @@
+import { keyBy, mapValues } from "lodash-es";
 import { StoreSlice } from ".";
 import { DiagramNode, NodeState, Vector } from "./utils";
 
@@ -9,6 +10,7 @@ export type NodesSlice = {
   updateNodePosition: (id: string, position: Vector) => void;
   addNode: (node: DiagramNode) => void;
   addNodes: (nodes: DiagramNode[]) => void;
+  setNodes: (nodes: DiagramNode[]) => void;
   getNode: (id: string) => DiagramNode | undefined;
   getNodePosition: (id: string) => Vector | undefined;
   getNodeState: (id: string) => NodeState | undefined;
@@ -78,6 +80,17 @@ export const createNodesSlice: StoreSlice<NodesSlice> = (set, get) => ({
           {}
         ),
       },
+    }));
+  },
+
+  setNodes: (nodes) => {
+    const nodesById = keyBy(nodes, "id");
+
+    set(() => ({
+      nodeIds: Object.keys(nodesById),
+      nodePositions: mapValues(nodesById, (node) => node.position),
+      nodeData: mapValues(nodesById, (node) => node.data),
+      nodeStates: mapValues(nodesById, (node) => node.state),
     }));
   },
 

@@ -1,11 +1,10 @@
 import { FC } from "react";
 import { DiagramNode, useDiagram } from "../../store/diagramStore";
 
+import { Box, Text } from "@chakra-ui/react";
 import React, { createContext, useContext } from "react";
 import { Layer } from "../Layer/Layer";
 import { Handle } from "./handle";
-import { Box, Stack, Text } from "@chakra-ui/react";
-import { NodeInternals } from "../../store/nodeInternalsSlice";
 interface NodeContextType {
   nodeId: string;
 }
@@ -44,23 +43,32 @@ export const DiagramNodeFC: FC<{ nodeId: string }> = React.memo(
       <NodeContextProvider nodeId={nodeId}>
         <Layer id={nodeId}>
           <>
-            <Stack
+            <Box
               rounded="md"
               // shadow="xl"
               pos="relative"
               bg="gray.700"
               p="4"
               py="2"
-              spacing="0"
             >
-              <Box pos="absolute" left="-10px">
+              <Box
+                pos="absolute"
+                left="0"
+                top="50%"
+                transform="translate(-50%, -50%)"
+              >
                 <Handle id="in" type="target" />
               </Box>
               <Text>{nodeId}</Text>
-              <Box pos="absolute" right="-10px" top="20px">
+              <Box
+                pos="absolute"
+                right="0"
+                top="50%"
+                transform="translate(+50%, -50%)"
+              >
                 <Handle id="out" type="source" />
               </Box>
-            </Stack>
+            </Box>
           </>
         </Layer>
       </NodeContextProvider>

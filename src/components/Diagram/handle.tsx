@@ -20,7 +20,7 @@ export const Handle: FC<HandleProps> = ({ id, type }) => {
   useResizeObserver({
     ref,
     onResize: () => {
-      useDiagram.getState().setHandleElement(nodeId, id, ref.current!);
+      useDiagram.getState().setHandleElement2(nodeId, id, ref.current!);
     },
   });
 
@@ -125,7 +125,7 @@ export const Handle: FC<HandleProps> = ({ id, type }) => {
         touchAction: "none",
       }}
     >
-      <AbsoluteCenter data-id={id} data-node-id={nodeId} data-type={type}>
+      {/* <AbsoluteCenter data-id={id} data-node-id={nodeId} data-type={type}>
         <Circle
           data-id={id}
           data-node-id={nodeId}
@@ -135,7 +135,7 @@ export const Handle: FC<HandleProps> = ({ id, type }) => {
           size="42px"
           // border="1px dashed gray"
         />
-      </AbsoluteCenter>
+      </AbsoluteCenter> */}
     </Circle>
   );
 };

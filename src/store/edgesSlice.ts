@@ -12,6 +12,7 @@ export type EdgesSlice = {
   updateEdgePosition: (id: string, position: EdgePosition) => void;
   addEdge: (edge: Edge) => void;
   addEdges: (edges: Edge[]) => void;
+  setEdges: (edges: Edge[]) => void;
   getEdge: (id: string) => Edge | undefined;
 };
 
@@ -43,6 +44,12 @@ export const createEdgesSlice: StoreSlice<EdgesSlice> = (set, get) => ({
   addEdges: (edges) => {
     set((state) => ({
       edges: [...state.edges, ...edges],
+    }));
+  },
+
+  setEdges: (edges) => {
+    set((state) => ({
+      edges,
     }));
   },
 
