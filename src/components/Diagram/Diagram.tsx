@@ -1,4 +1,5 @@
-import { Box } from "@chakra-ui/react";
+import { Box, HStack } from "@chakra-ui/react";
+import useResizeObserver from "@react-hook/resize-observer";
 import { animated, update, useSpring, config } from "@react-spring/web";
 import { useDrag, useGesture, useWheel } from "@use-gesture/react";
 import { FC, ReactNode, useRef } from "react";
@@ -14,7 +15,7 @@ import { Edge, EdgeContainer, UserEdge } from "./edge";
 import { createNodesAndEdges } from "./utils";
 export const Diagram: FC = () => {
   const updateScale = useDiagram((state) => state.viewport.updateScale);
-  // const viewport = useDiagram((state) => state.viewport);
+  const fitView = useDiagram((state) => state.fitView);
   const updatePosition = useDiagram((state) => state.viewport.updatePosition);
   const nodeIds = useDiagram((state) => state.nodeIds);
   const addNode = useDiagram((state) => state.addNode);
@@ -31,46 +32,53 @@ export const Diagram: FC = () => {
       return acc;
     }, {} as Record<string, { x: number; y: number }>);
     useDiagram.setState({ nodePositions: positions });
+    fitView();
   };
   const handleAdd = () => {
     addNode(createNode());
   };
 
   const addMore = () => {
-    const { edges, nodes } = createNodesAndEdges(10, 20);
+    const { edges, nodes } = createNodesAndEdges(10, 10);
     setNodes(nodes);
     setEdges(edges);
+    setTimeout(() => {
+      fitView();
+    }, 500);
   };
 
   const containerRef = useRef<HTMLDivElement>(null);
   const paneRef = useRef<HTMLDivElement>(null);
+
   const [styles, api] = useSpring(() => ({
     x: 0,
     y: 0,
     scale: useDiagram.getState().viewport.scale,
   }));
 
+  useResizeObserver(containerRef, (entry) => {
+    useDiagram
+      .getState()
+      .viewport.updateSize(entry.contentRect.width, entry.contentRect.height);
+  });
+
   useDiagram((state) => {
-    if (state.viewport.scale !== styles.scale.get()) {
+    if (
+      state.viewport.scale !== styles.scale.get() ||
+      state.viewport.position.x !== styles.x.get() ||
+      state.viewport.position.y !== styles.y.get()
+    ) {
       api.start({
         scale: state.viewport.scale,
-        config: {
-          ...config.wobbly,
-          duration: 100,
-        },
+        x: state.viewport.position.x,
+        y: state.viewport.position.y,
+        immediate: false,
       });
     }
   });
 
   useGesture(
     {
-      onDoubleClickCapture: ({ event }) => {
-        const newScale = Math.exp(100 * -0.00125) * styles.scale.get();
-        api.start({
-          scale: newScale,
-        });
-        updateScale(styles.scale.get() * 1.1);
-      },
       onDrag: ({ offset: [x, y], event, delta, cancel, canceled }) => {
         if (canceled) return;
         if (
@@ -104,8 +112,16 @@ export const Diagram: FC = () => {
           x: newX,
           y: newY,
         });
-        updateScale(newScale);
-        updatePosition({ x: newX, y: newY });
+        useDiagram.setState((state) => ({
+          viewport: {
+            ...state.viewport,
+            scale: newScale,
+            position: {
+              x: newX,
+              y: newY,
+            },
+          },
+        }));
       },
       onPinch: ({ offset: [d, a], origin: [ox, oy], da: [, da] }) => {
         updateScale(d);
@@ -138,38 +154,40 @@ export const Diagram: FC = () => {
       overflow="hidden"
       style={{ touchAction: "none" }}
       ref={containerRef}
-      onDoubleClickCapture={(e) => {
-        const scale = styles.scale.get();
-        const x = styles.x.get();
-        const y = styles.y.get();
+      // onDoubleClickCapture={(e) => {
+      //   const scale = styles.scale.get();
+      //   const x = styles.x.get();
+      //   const y = styles.y.get();
 
-        const xs = (e.clientX - x) / scale;
-        const ys = (e.clientY - y) / scale;
+      //   const xs = (e.clientX - x) / scale;
+      //   const ys = (e.clientY - y) / scale;
 
-        const newScale = Math.exp(300 * 0.00125) * styles.scale.get();
-        const newX = e.clientX - xs * newScale;
-        const newY = e.clientY - ys * newScale;
-        api.start({
-          scale: newScale,
-          x: newX,
-          y: newY,
-          immediate: true,
-        });
-        updateScale(newScale);
-        updatePosition({ x: newX, y: newY });
-      }}
+      //   const newScale = Math.exp(300 * 0.00125) * styles.scale.get();
+      //   const newX = e.clientX - xs * newScale;
+      //   const newY = e.clientY - ys * newScale;
+      //   api.start({
+      //     scale: newScale,
+      //     x: newX,
+      //     y: newY,
+      //     immediate: true,
+      //   });
+      //   updateScale(newScale);
+      //   updatePosition({ x: newX, y: newY });
+      // }}
     >
-      <Box zIndex={100} pos="absolute">
+      <HStack zIndex={100} pos="absolute">
         <button onClick={handleAdd}>addnode</button>
         <button onClick={addMore}>add more</button>
         <button onClick={() => randomizePositions()}>randomize</button>
+        <button onClick={() => fitView()}>fitView</button>
         <FullscreenBtn target={containerRef} />
-      </Box>
+      </HStack>
       <animated.div
         ref={paneRef}
         style={{
           ...styles,
           // position: "absolute",
+          // border: "1px solid red",
           width: "100%",
           height: "100%",
           touchAction: "none",

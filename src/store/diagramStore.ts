@@ -39,6 +39,16 @@ export const useDiagram = createDiagramStore();
 // @ts-ignore
 window.useDiagram = useDiagram;
 
+useDiagram.subscribe(
+  (state) => state.viewport,
+  (viewport) => {
+    // console.log("viewport:", {
+    //   ...viewport.position,
+    //   scale: viewport.scale,
+    // });
+  }
+);
+
 export const getInDiagramPosition = ({ x, y }: Vector) => {
   const { position, scale } = useDiagram.getState().viewport;
   return {

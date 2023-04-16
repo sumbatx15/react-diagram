@@ -208,8 +208,6 @@ export const generateHandleDimensions = async ({
     promises.push(
       getUnscaledRectsForHandles(nodeHandleElements, scale).then(
         (handleUnscaledRects) => {
-          console.log("handleUnscaledRects:", handleUnscaledRects);
-
           result.handleUnscaledRects = merge(result.handleUnscaledRects, {
             [nodeId]: handleUnscaledRects,
           });

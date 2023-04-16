@@ -9,13 +9,15 @@ import {
   createNodeInternalsSlice,
   NodeInternalsSlice,
 } from "./nodeInternalsSlice";
+import { createFitViewSlice, FitViewSlice } from "./fitviewSlice";
 
 export type StoreState = NodesSlice &
   EdgesSlice &
   DraggedEdgeSlice &
   ElementsSlice &
   ViewportSlice &
-  NodeInternalsSlice;
+  NodeInternalsSlice &
+  FitViewSlice;
 export type StoreSlice<T> = StateCreator<StoreState, [], [], T>;
 
 export const createDiagramStore = () => {
@@ -27,6 +29,7 @@ export const createDiagramStore = () => {
       ...createElementsSlice(set, get, store),
       ...createViewportSlice(set, get, store),
       ...createNodeInternalsSlice(set, get, store),
+      ...createFitViewSlice(set, get, store),
     }))
   );
 };
