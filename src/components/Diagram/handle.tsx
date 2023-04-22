@@ -123,7 +123,7 @@ export const Handle: FC<HandleProps> = ({ id, type }) => {
       className="handle"
       ref={ref}
       zIndex="100"
-      size="16px"
+      size="8px"
       bg="white"
       pos="relative"
       data-element-type="handle"

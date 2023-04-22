@@ -152,16 +152,16 @@ export function createNodesAndEdges(xNodes = 10, yNodes = 10) {
     for (let x = 0; x < xNodes; x++) {
       const node = {
         ...createNode(),
-        id: `stress-${nodeId.toString()}`,
-        position: { x: x * 150, y: y * 60 },
+        id: `${nodeId.toString()}`,
+        position: { x: x * 80, y: y * 80 },
       };
       nodes.push(node);
 
       if (recentNodeId && nodeId <= xNodes * yNodes) {
         edges.push({
           id: `${x}-${y}`,
-          source: `stress-${recentNodeId.toString()}`,
-          target: `stress-${nodeId.toString()}`,
+          source: `${recentNodeId.toString()}`,
+          target: `${nodeId.toString()}`,
           sourceHandle: "out",
           targetHandle: "in",
           data: "",

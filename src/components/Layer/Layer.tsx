@@ -30,23 +30,43 @@ export const Layer: FC<LayerProps> = ({ id, children }) => {
     x: useDiagram.getState().getNode(id)?.position.x || 0,
     y: useDiagram.getState().getNode(id)?.position.y || 0,
     zIndex: 0,
+    isSelected: false,
   }));
 
   useDiagram((state) => {
     const position = state.getNodePosition(id);
     if (!position) return;
-    if (position.x !== styles.x.get() || position.y !== styles.y.get()) {
+    const isSelected =
+      state.getNodeState(id)?.selected ||
+      (state.viewport.showSelectionBox &&
+        state.viewport.getNodesInSelectionBox().includes(id));
+
+    if (
+      position.x !== styles.x.get() ||
+      position.y !== styles.y.get() ||
+      isSelected !== styles.isSelected.get()
+    ) {
       api.set({
         x: position.x,
         y: position.y,
+        isSelected,
       });
     }
   });
 
   useGesture(
     {
-      onDrag: ({ delta: [x, y], event, canceled, first, cancel, pinching }) => {
-        if (canceled || pinching) return;
+      onDrag: ({
+        delta: [x, y],
+        event,
+        canceled,
+        first,
+        cancel,
+        pinching,
+        ctrlKey,
+        shiftKey,
+      }) => {
+        if (canceled || pinching || ctrlKey || shiftKey) return;
         if (
           event.target instanceof HTMLInputElement ||
           (event.target as HTMLElement).classList.contains("handle")
@@ -55,15 +75,27 @@ export const Layer: FC<LayerProps> = ({ id, children }) => {
 
         event.stopPropagation();
         event.stopImmediatePropagation();
+
         const scale = useDiagram.getState().viewport.scale;
-        const newX = styles.x.get() + x / scale;
-        const newY = styles.y.get() + y / scale;
+        const deltaX = x / scale;
+        const deltaY = y / scale;
+
+        const newX = styles.x.get() + deltaX;
+        const newY = styles.y.get() + deltaY;
         api.set({
           x: newX,
           y: newY,
           zIndex: 1,
         });
-        useDiagram.getState().updateNodePosition(id, { x: newX, y: newY });
+        const hasSelectedNodes =
+          useDiagram.getState().getSelectedNodeIds().length > 0;
+        if (hasSelectedNodes) {
+          useDiagram
+            .getState()
+            .updateSelectedNodesPositions({ x: deltaX, y: deltaY });
+        } else {
+          useDiagram.getState().updateNodePosition(id, { x: newX, y: newY });
+        }
       },
       onDragEnd: () => {
         api.set({
@@ -92,6 +124,9 @@ export const Layer: FC<LayerProps> = ({ id, children }) => {
         touchAction: "none",
         userSelect: "none",
         position: "absolute",
+        outline: styles.isSelected.to((isSelected) =>
+          isSelected ? "2px solid " : "none"
+        ),
       }}
     >
       {children}

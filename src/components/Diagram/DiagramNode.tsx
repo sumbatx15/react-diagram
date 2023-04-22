@@ -1,7 +1,7 @@
 import { FC } from "react";
 import { DiagramNode, useDiagram } from "../../store/diagramStore";
 
-import { Box, Text } from "@chakra-ui/react";
+import { Box, Flex, Text } from "@chakra-ui/react";
 import React, { createContext, useContext } from "react";
 import { Layer } from "../Layer/Layer";
 import { Handle } from "./handle";
@@ -39,28 +39,28 @@ export const useNode = (
 
 export const DiagramNodeFC: FC<{ nodeId: string }> = React.memo(
   ({ nodeId }) => {
-    const isSelected = useDiagram(
-      (state) => state.getNodeState(nodeId)?.selected
-    );
-
     return (
       <NodeContextProvider nodeId={nodeId}>
         <Layer id={nodeId}>
           <>
-            <Box
+            <Flex
               rounded="md"
+              justify="center"
+              align="center"
               // shadow="xl"
               pos="relative"
               bg="gray.700"
               p="4"
               py="2"
+              w="60px"
+              h="60px"
               color="white"
-              outline={isSelected ? "2px solid" : "none"}
+              // outline={isSelected ? "2px solid" : "none"}
             >
               <Box
                 pos="absolute"
-                left="0"
-                top="50%"
+                top="0"
+                left="50%"
                 transform="translate(-50%, -50%)"
               >
                 <Handle id="in" type="target" />
@@ -68,13 +68,13 @@ export const DiagramNodeFC: FC<{ nodeId: string }> = React.memo(
               <Text>{nodeId}</Text>
               <Box
                 pos="absolute"
-                right="0"
-                top="50%"
-                transform="translate(+50%, -50%)"
+                bottom="0"
+                right="50%"
+                transform="translate(+50%, 50%)"
               >
                 <Handle id="out" type="source" />
               </Box>
-            </Box>
+            </Flex>
           </>
         </Layer>
       </NodeContextProvider>

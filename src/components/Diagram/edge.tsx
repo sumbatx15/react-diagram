@@ -130,9 +130,9 @@ export const StatefulEdge: FC<{ edge: EdgeType }> = memo(({ edge }) => {
           sourceY: start.y,
           targetX: end.x,
           targetY: end.y,
-          sourcePosition: Position.Right,
-          targetPosition: Position.Left,
-          curvature: 0.25,
+          sourcePosition: Position.Bottom,
+          targetPosition: Position.Top,
+          curvature: 0.1,
         })[0],
       });
     }

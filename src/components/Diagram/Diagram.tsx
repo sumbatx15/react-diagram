@@ -11,6 +11,7 @@ import {
   getInDiagramPosition,
   useDiagram,
 } from "../../store/diagramStore";
+import { getNodesInsideRect } from "../../store/utils";
 import { FullscreenBtn } from "../Editor/FullscreenBtn";
 import {
   calcBoxXY,
@@ -46,7 +47,7 @@ export const Diagram: FC = () => {
   };
 
   const addMore = () => {
-    const { edges, nodes } = createNodesAndEdges(20, 20);
+    const { edges, nodes } = createNodesAndEdges(10, 10);
     setNodes(nodes);
     setEdges(edges);
     setTimeout(() => {
@@ -93,6 +94,7 @@ export const Diagram: FC = () => {
         delta,
         cancel,
         canceled,
+        ctrlKey,
         shiftKey,
         first,
       }) => {
@@ -102,8 +104,11 @@ export const Diagram: FC = () => {
           (event.target as HTMLElement).classList.contains("handle")
         )
           return cancel();
-        if (shiftKey || useDiagram.getState().viewport.showSelectionBox) {
-          console.log("shiftKey:", shiftKey);
+        if (
+          ctrlKey ||
+          shiftKey ||
+          useDiagram.getState().viewport.showSelectionBox
+        ) {
           if (first) {
             useDiagram.setState((state) => ({
               viewport: {
@@ -132,22 +137,7 @@ export const Diagram: FC = () => {
         updatePosition({ x: newX, y: newY });
       },
       onDragEnd: () => {
-        const { start, end } =
-          useDiagram.getState().viewport.selectionBoxPosition;
-        const { x, y } = calcBoxXY(start, end);
-        const { width, height } = calculateWidthAndHeight(start, end);
-
-        const nodeIds = useDiagram.getState().nodeIds.filter((id) => {
-          const position = useDiagram.getState().nodePositions[id];
-          const rect = useDiagram.getState().nodeUnscaledRects[id];
-
-          return (
-            position.x + rect.width >= x &&
-            position.x <= x + width &&
-            position.y + rect.height >= y &&
-            position.y <= y + height
-          );
-        });
+        const nodeIds = getNodesInsideRect();
         useDiagram.getState().setSelectedNodes(nodeIds);
         useDiagram.setState((state) => ({
           viewport: {

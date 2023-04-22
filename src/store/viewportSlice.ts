@@ -7,6 +7,7 @@ import {
   NodeState,
   Vector,
   createZeroStartEndPosition,
+  getNodesInsideRect,
 } from "./utils";
 
 export type ViewportSlice = {
@@ -22,6 +23,7 @@ export type ViewportSlice = {
     showSelectionBox: boolean;
     selectionBoxPosition: StartEndPosition;
     updateSelectionBox: (position: Partial<StartEndPosition>) => void;
+    getNodesInSelectionBox: () => string[];
   };
 };
 
@@ -59,6 +61,9 @@ export const createViewportSlice: StoreSlice<ViewportSlice> = (set, get) => ({
           selectionBoxPosition: position,
         }),
       }));
+    },
+    getNodesInSelectionBox: () => {
+      return getNodesInsideRect();
     },
   },
 });

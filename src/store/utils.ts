@@ -4,6 +4,10 @@ import { MutableRefObject } from "react";
 import { createSelector } from "reselect";
 import { shallow } from "zustand/shallow";
 import { StoreState } from ".";
+import {
+  calcBoxXY,
+  calculateWidthAndHeight,
+} from "../components/Selection/Selection";
 import { createHandleElementId } from "../utils";
 import { singletonIntersectionObserver } from "../utils/SingletonIntersectionObserver";
 import {
@@ -329,4 +333,51 @@ export const getHandlePositions = async (
     handleRect,
     handleDimensions: getHandleDimension(nodeRect, handleRect),
   };
+};
+
+export const getNodesInsideRect = () => {
+  const { start, end } = useDiagram.getState().viewport.selectionBoxPosition;
+  const { x, y } = calcBoxXY(start, end);
+  const { width, height } = calculateWidthAndHeight(start, end);
+
+  const selectionBox = {
+    x,
+    y,
+    width,
+    height,
+  };
+
+  const threshold = 0.2; // 20%
+
+  return useDiagram.getState().nodeIds.filter((id) => {
+    const position = useDiagram.getState().nodePositions[id];
+    const rect = useDiagram.getState().nodeUnscaledRects[id];
+    if (!position || !rect) return false;
+
+    const nodeBox = {
+      x: position.x,
+      y: position.y,
+      width: rect.width,
+      height: rect.height,
+    };
+
+    const xOverlap = Math.max(
+      0,
+      Math.min(selectionBox.x + selectionBox.width, nodeBox.x + nodeBox.width) -
+        Math.max(selectionBox.x, nodeBox.x)
+    );
+    const yOverlap = Math.max(
+      0,
+      Math.min(
+        selectionBox.y + selectionBox.height,
+        nodeBox.y + nodeBox.height
+      ) - Math.max(selectionBox.y, nodeBox.y)
+    );
+
+    const overlapArea = xOverlap * yOverlap;
+    const nodeArea = nodeBox.width * nodeBox.height;
+    const overlapPercentage = overlapArea / nodeArea;
+
+    return overlapPercentage >= threshold;
+  });
 };

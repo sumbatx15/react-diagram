@@ -1,4 +1,4 @@
-import { keyBy, mapValues } from "lodash-es";
+import { keyBy, mapValues, pickBy } from "lodash-es";
 import { StoreSlice } from ".";
 import { DiagramNode, NodeState, Vector } from "./utils";
 
@@ -8,7 +8,10 @@ export type NodesSlice = {
   nodeData: Record<string, unknown>;
   nodeStates: Record<string, NodeState>;
   updateNodePosition: (id: string, position: Vector) => void;
+  updateSelectedNodesPositions: (delta: Vector) => void;
   setSelectedNodes: (ids: string[]) => void;
+  clearSelectedNodes: () => void;
+  getSelectedNodeIds: () => string[];
   addNode: (node: DiagramNode) => void;
   addNodes: (nodes: DiagramNode[]) => void;
   setNodes: (nodes: DiagramNode[]) => void;
@@ -45,6 +48,29 @@ export const createNodesSlice: StoreSlice<NodesSlice> = (set, get) => ({
         ),
       },
     }));
+  },
+  clearSelectedNodes: () => {
+    set((state) => ({
+      nodeStates: {
+        ...state.nodeStates,
+        ...state.nodeIds.reduce(
+          (acc, id) => ({
+            ...acc,
+            [id]: {
+              ...state.nodeStates[id],
+              selected: false,
+            },
+          }),
+          {}
+        ),
+      },
+    }));
+  },
+  getSelectedNodeIds: () => {
+    const state = get();
+    return state.nodeIds.filter(
+      (id) => state.nodeStates[id]?.selected ?? false
+    );
   },
   addNode: (node) => {
     set((state) => ({
@@ -118,6 +144,27 @@ export const createNodesSlice: StoreSlice<NodesSlice> = (set, get) => ({
         [id]: position,
       },
     }));
+  },
+
+  updateSelectedNodesPositions: (delta) => {
+    set((state) => {
+      const selectedNodes = pickBy(
+        state.nodeStates,
+        (nodeState) => nodeState.selected
+      );
+
+      const updatedPositions = mapValues(selectedNodes, (nodeState, id) => ({
+        x: state.nodePositions[id].x + delta.x,
+        y: state.nodePositions[id].y + delta.y,
+      }));
+
+      return {
+        nodePositions: {
+          ...state.nodePositions,
+          ...updatedPositions,
+        },
+      };
+    });
   },
 
   getNode: (id) => {
