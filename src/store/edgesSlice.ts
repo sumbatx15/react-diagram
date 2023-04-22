@@ -2,14 +2,14 @@ import { StoreSlice } from ".";
 import { Edge } from "./diagramStore";
 import {
   createEdgePosition,
-  createZeroEdgePosition,
-  EdgePosition,
+  createZeroStartEndPosition,
+  StartEndPosition,
 } from "./utils";
 
 export type EdgesSlice = {
   edges: Edge[];
-  edgePositions: Record<string, EdgePosition>;
-  updateEdgePosition: (id: string, position: EdgePosition) => void;
+  edgePositions: Record<string, StartEndPosition>;
+  updateEdgePosition: (id: string, position: StartEndPosition) => void;
   addEdge: (edge: Edge) => void;
   addEdges: (edges: Edge[]) => void;
   setEdges: (edges: Edge[]) => void;
@@ -32,11 +32,12 @@ export const createEdgesSlice: StoreSlice<EdgesSlice> = (set, get) => ({
   },
 
   addEdge: (edge) => {
+    if (get().edges.find((e) => e.id === edge.id)) return;  
     set((state) => ({
       edges: [...state.edges, edge],
       edgePositions: {
         ...state.edgePositions,
-        [edge.id]: createZeroEdgePosition(),
+        [edge.id]: createZeroStartEndPosition(),
       },
     }));
   },

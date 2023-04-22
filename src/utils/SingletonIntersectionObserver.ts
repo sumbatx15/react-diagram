@@ -15,7 +15,11 @@ class SingletonIntersectionObserver {
     entries.forEach((entry) => {
       const target = entry.target as CustomHTMLElement;
       observer.disconnect();
-      target._resolver && target._resolver(entry.boundingClientRect);
+      console.log("entry.boundingClientRect:", entry.boundingClientRect);
+      target._resolver &&
+        target._resolver.forEach((resolve) =>
+          resolve(entry.boundingClientRect)
+        );
     });
   }
 
@@ -29,7 +33,8 @@ class SingletonIntersectionObserver {
 
   public observe(element: CustomHTMLElement): Promise<DOMRectReadOnly> {
     return new Promise((resolve) => {
-      element._resolver = resolve;
+      element._resolver ||= [];
+      element._resolver.push(resolve);
       this.observer.observe(element);
     });
   }

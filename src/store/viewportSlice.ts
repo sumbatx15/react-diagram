@@ -1,7 +1,13 @@
 import { merge } from "lodash-es";
 import { StoreSlice } from ".";
 import { Edge } from "./diagramStore";
-import { DiagramNode, EdgePosition, NodeState, Vector } from "./utils";
+import {
+  DiagramNode,
+  StartEndPosition,
+  NodeState,
+  Vector,
+  createZeroStartEndPosition,
+} from "./utils";
 
 export type ViewportSlice = {
   viewport: {
@@ -12,6 +18,10 @@ export type ViewportSlice = {
     updateScale: (scale: number) => void;
     updatePosition: (position: Vector) => void;
     updateSize: (width: number, height: number) => void;
+
+    showSelectionBox: boolean;
+    selectionBoxPosition: StartEndPosition;
+    updateSelectionBox: (position: Partial<StartEndPosition>) => void;
   };
 };
 
@@ -39,6 +49,15 @@ export const createViewportSlice: StoreSlice<ViewportSlice> = (set, get) => ({
           ...state.viewport,
           position,
         },
+      }));
+    },
+    showSelectionBox: false,
+    selectionBoxPosition: createZeroStartEndPosition(),
+    updateSelectionBox: (position) => {
+      set((state) => ({
+        viewport: merge(state.viewport, {
+          selectionBoxPosition: position,
+        }),
       }));
     },
   },

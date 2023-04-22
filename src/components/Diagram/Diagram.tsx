@@ -3,13 +3,20 @@ import useResizeObserver from "@react-hook/resize-observer";
 import { animated, update, useSpring, config } from "@react-spring/web";
 import { useDrag, useGesture, useWheel } from "@use-gesture/react";
 import { FC, ReactNode, useRef } from "react";
+import { useEvent } from "react-use";
 import {
   createNode,
   DiagramNode,
   Edge as IEdge,
+  getInDiagramPosition,
   useDiagram,
 } from "../../store/diagramStore";
 import { FullscreenBtn } from "../Editor/FullscreenBtn";
+import {
+  calcBoxXY,
+  calculateWidthAndHeight,
+  SelectionBox,
+} from "../Selection/Selection";
 import { DiagramNodeFC } from "./DiagramNode";
 import { Edge, EdgeContainer, UserEdge } from "./edge";
 import { createNodesAndEdges } from "./utils";
@@ -39,7 +46,7 @@ export const Diagram: FC = () => {
   };
 
   const addMore = () => {
-    const { edges, nodes } = createNodesAndEdges(10, 10);
+    const { edges, nodes } = createNodesAndEdges(20, 20);
     setNodes(nodes);
     setEdges(edges);
     setTimeout(() => {
@@ -79,13 +86,43 @@ export const Diagram: FC = () => {
 
   useGesture(
     {
-      onDrag: ({ offset: [x, y], event, delta, cancel, canceled }) => {
+      onDrag: ({
+        offset: [x, y],
+        xy: [x2, y2],
+        event,
+        delta,
+        cancel,
+        canceled,
+        shiftKey,
+        first,
+      }) => {
         if (canceled) return;
         if (
           (event.target as HTMLElement).classList.contains("layer") ||
           (event.target as HTMLElement).classList.contains("handle")
         )
           return cancel();
+        if (shiftKey || useDiagram.getState().viewport.showSelectionBox) {
+          console.log("shiftKey:", shiftKey);
+          if (first) {
+            useDiagram.setState((state) => ({
+              viewport: {
+                ...state.viewport,
+                showSelectionBox: true,
+              },
+            }));
+
+            useDiagram.getState().viewport.updateSelectionBox({
+              start: getInDiagramPosition({ x: x2, y: y2 }),
+              end: getInDiagramPosition({ x: x2, y: y2 }),
+            });
+          } else {
+            useDiagram.getState().viewport.updateSelectionBox({
+              end: getInDiagramPosition({ x: x2, y: y2 }),
+            });
+          }
+          return;
+        }
         const newX = styles.x.get() + delta[0];
         const newY = styles.y.get() + delta[1];
         api.set({
@@ -93,6 +130,35 @@ export const Diagram: FC = () => {
           y: newY,
         });
         updatePosition({ x: newX, y: newY });
+      },
+      onDragEnd: () => {
+        const { start, end } =
+          useDiagram.getState().viewport.selectionBoxPosition;
+        const { x, y } = calcBoxXY(start, end);
+        const { width, height } = calculateWidthAndHeight(start, end);
+
+        const nodeIds = useDiagram.getState().nodeIds.filter((id) => {
+          const position = useDiagram.getState().nodePositions[id];
+          const rect = useDiagram.getState().nodeUnscaledRects[id];
+
+          return (
+            position.x + rect.width >= x &&
+            position.x <= x + width &&
+            position.y + rect.height >= y &&
+            position.y <= y + height
+          );
+        });
+        useDiagram.getState().setSelectedNodes(nodeIds);
+        useDiagram.setState((state) => ({
+          viewport: {
+            ...state.viewport,
+            showSelectionBox: false,
+            selectionBoxPosition: {
+              start: { x: 0, y: 0 },
+              end: { x: 0, y: 0 },
+            },
+          },
+        }));
       },
       // now we need to create onWheel event the will zoom in and out on the point where the mouse is
       // the onWheel event is attached to the containerRef but we are going to scale the paneRef
@@ -198,6 +264,7 @@ export const Diagram: FC = () => {
         <EdgeContainer style={{ zIndex: 100 }}>
           <UserEdge />
         </EdgeContainer>
+        <SelectionBox />
         <EdgeContainer />
         {nodeIds.map((id) => (
           <DiagramNodeFC nodeId={id} key={id} />

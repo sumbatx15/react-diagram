@@ -1,10 +1,11 @@
 import { animated, useSpring } from "@react-spring/web";
 import { useGesture } from "@use-gesture/react";
-import { FC, useRef } from "react";
+import { FC, useLayoutEffect, useRef } from "react";
 import { useDiagram } from "../../store/diagramStore";
 import { useNode } from "../Diagram/DiagramNode";
 import useResizeObserver from "@react-hook/resize-observer";
 import { useOnResize } from "../../hooks/sizeObserver";
+import { resizeObserver } from "../../utils/resizeObserver";
 
 export interface LayerProps {
   id: string;
@@ -14,9 +15,16 @@ export interface LayerProps {
 export const Layer: FC<LayerProps> = ({ id, children }) => {
   const ref = useRef<HTMLElement>(null);
 
-  useResizeObserver(ref, (entry, re) => {
-    useDiagram.getState().setNodeElement2(id, ref.current!, entry.contentRect);
-  });
+  useLayoutEffect(() => {
+    resizeObserver.observe(ref.current!);
+    return () => {
+      resizeObserver.unobserve(ref.current!);
+    };
+  }, []);
+
+  // useResizeObserver(ref, (entry, re) => {
+  //   useDiagram.getState().setNodeElement2(id, ref.current!, entry.contentRect);
+  // });
 
   const [styles, api] = useSpring(() => ({
     x: useDiagram.getState().getNode(id)?.position.x || 0,
@@ -37,16 +45,7 @@ export const Layer: FC<LayerProps> = ({ id, children }) => {
 
   useGesture(
     {
-      onDrag: ({
-        delta: [x, y],
-        event,
-        canceled,
-        first,
-        cancel,
-        pinching,
-        ...args
-      }) => {
-        console.log("args:", args);
+      onDrag: ({ delta: [x, y], event, canceled, first, cancel, pinching }) => {
         if (canceled || pinching) return;
         if (
           event.target instanceof HTMLInputElement ||
@@ -85,6 +84,7 @@ export const Layer: FC<LayerProps> = ({ id, children }) => {
       //@ts-ignore
       ref={ref}
       className="layer"
+      data-element-type="node"
       data-id={id}
       style={{
         width: "",

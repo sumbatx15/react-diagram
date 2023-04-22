@@ -1,7 +1,7 @@
 import uniqid from "uniqid";
 import { StoreApi, UseBoundStore } from "zustand";
 import { createDiagramStore } from ".";
-import { DiagramNode, EdgePosition, NodeState, Vector } from "./utils";
+import { DiagramNode, StartEndPosition, NodeState, Vector } from "./utils";
 
 const createVector = (
   x: number = Math.random() * 500,
@@ -31,7 +31,7 @@ export interface Edge {
   data: unknown;
 }
 
-export type { EdgePosition };
+export type { StartEndPosition as EdgePosition };
 export type { DiagramNode };
 
 export const useDiagram = createDiagramStore();

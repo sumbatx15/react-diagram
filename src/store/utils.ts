@@ -1,6 +1,7 @@
 import { SpringValues } from "@react-spring/web";
 import { merge } from "lodash-es";
 import { MutableRefObject } from "react";
+import { createSelector } from "reselect";
 import { shallow } from "zustand/shallow";
 import { StoreState } from ".";
 import { createHandleElementId } from "../utils";
@@ -61,12 +62,12 @@ export interface DiagramNode {
   state: NodeState;
 }
 
-export interface EdgePosition {
+export interface StartEndPosition {
   start: Vector;
   end: Vector;
 }
 
-export const createZeroEdgePosition = () => {
+export const createZeroStartEndPosition = () => {
   return {
     start: { x: 0, y: 0 },
     end: { x: 0, y: 0 },
@@ -94,8 +95,17 @@ export type DOMRectLike = Pick<
 >;
 
 export const getBoundingClientRect = (element: HTMLElement) => {
-  return singletonIntersectionObserver.observe(element);
+  // return singletonIntersectionObserver.observe(element);
+  return new Promise((resolve) => {
+    new IntersectionObserver((entries, observer) => {
+      for (const entry of entries) {
+        resolve(entry.boundingClientRect);
+      }
+      observer.disconnect();
+    }).observe(element);
+  });
 };
+
 export const convertToDOMRectLike = (rect: DOMRectLike): DOMRectLike => {
   return {
     x: rect.x,
@@ -124,6 +134,16 @@ export const getUnscaledDOMRect = (
     bottom: rect.bottom / scale,
     right: rect.right / scale,
   };
+};
+
+export const getUnscaledClientBoundingRect = async (
+  element: HTMLElement,
+  viewportScale: number
+) => {
+  return getUnscaledDOMRect(
+    await getBoundingClientRect(element),
+    viewportScale
+  );
 };
 
 interface GetRelativePositionOptions {
@@ -270,5 +290,43 @@ export const getHandleDimension = (
       x: relativePosition.x + unscaledHandleRect.width / 2,
       y: relativePosition.y + unscaledHandleRect.height / 2,
     },
+  };
+};
+
+interface NodeRectSelectorParams {
+  handleElement: HTMLElement;
+  scale: number;
+}
+
+const nodeRectSelector = createSelector(
+  (state: NodeRectSelectorParams) => state.handleElement,
+  (state: NodeRectSelectorParams) => state.scale,
+  (handleElement, scale) => {
+    const nodeElement = handleElement.closest(
+      '[data-type="node"]'
+    ) as HTMLElement;
+    return getUnscaledClientBoundingRect(nodeElement, scale);
+  }
+);
+
+export const getParentNodeElement = (handleElement: HTMLElement) => {
+  return handleElement.closest('[data-type="node"]') as HTMLElement;
+};
+
+export const getHandlePositions = async (
+  handleElement: HTMLElement,
+  viewportScale: number
+) => {
+  const nodeElement = getParentNodeElement(handleElement);
+
+  const [nodeRect, handleRect] = await Promise.all([
+    getUnscaledClientBoundingRect(nodeElement, viewportScale),
+    getUnscaledClientBoundingRect(handleElement, viewportScale),
+  ]);
+
+  return {
+    nodeRect,
+    handleRect,
+    handleDimensions: getHandleDimension(nodeRect, handleRect),
   };
 };

@@ -10,11 +10,30 @@ import {
   getHandleCenter,
   getUnscaledDOMRect,
   generateHandleDimensions,
+  getHandleDimension,
+  getHandlePositions,
 } from "./utils";
 import {
   createDebouncedUpdater,
   DebouncedUpdater,
 } from "../utils/debouncedUpdater";
+import { createSelector } from "reselect";
+
+interface NodeRectSelectorParams {
+  handleElement: HTMLElement;
+  scale: number;
+}
+
+const nodeRectSelector = createSelector(
+  (state: NodeRectSelectorParams) => state.handleElement,
+  (state: NodeRectSelectorParams) => state.scale,
+  async (handleElement, scale) => {
+    const nodeElement = handleElement.closest(
+      '[data-type="node"]'
+    ) as HTMLElement;
+    return getUnscaledDOMRect(await getBoundingClientRect(nodeElement), scale);
+  }
+);
 
 class ElementsUpdater {
   private elements: Pick<
@@ -73,6 +92,8 @@ class ElementsUpdater {
     element: HTMLElement
   ) {
     const unscaledRect = await getBoundingClientRect(element);
+    const nodeElement = element.closest('[data-type="node"]');
+    console.log("nodeElement:", nodeElement);
     this.elements = merge(this.elements, {
       handleElements: {
         [nodeId]: {
@@ -106,13 +127,6 @@ export type ElementsSlice = {
   ) => void;
 
   getHandleCenter: (nodeId: string, handleId: string) => Vector;
-
-  nodesDebouncedUpdater: DebouncedUpdater<[id: string, element: HTMLElement]>;
-  handlesDebouncedUpdater: DebouncedUpdater<
-    [id: string, handleId: string, element: HTMLElement]
-  >;
-
-  // elementsDebounceUpdater: ElementsUpdater;
 };
 
 // eslint-disable-next-line react-func/max-lines-per-function
@@ -124,14 +138,9 @@ export const createElementsSlice: StoreSlice<ElementsSlice> = (set, get) => {
     handleUnscaledRects: {},
     handleDimensions: {},
 
-    setNodeElement2: (id, element, rect) => {
-      console.log("rect:", rect);
-      get().nodesDebouncedUpdater.update(id, element);
-    },
+    setNodeElement2: (id, element, rect) => {},
 
-    setHandleElement2: (nodeId, handleId, element) => {
-      get().handlesDebouncedUpdater.update(nodeId, handleId, element);
-    },
+    setHandleElement2: (nodeId, handleId, element) => {},
 
     getHandleCenter: (nodeId, handleId) => {
       const handleDimensions = get().handleDimensions[nodeId]?.[handleId];
@@ -143,94 +152,5 @@ export const createElementsSlice: StoreSlice<ElementsSlice> = (set, get) => {
         handleRelativeCenterOffset: handleDimensions.relativeCenterOffset,
       });
     },
-    nodesDebouncedUpdater: createDebouncedUpdater({
-      create: () => ({
-        nodeElements: {},
-        nodeUnscaledRects: {},
-      }),
-      update: async (state, id, element) => {
-        return merge(state, {
-          nodeElements: { [id]: element },
-          nodeUnscaledRects: {
-            [id]: getUnscaledDOMRect(
-              await getBoundingClientRect(element),
-              get().viewport.scale
-            ),
-          },
-        });
-      },
-      onUpdate: async ({ nodeElements, nodeUnscaledRects }) => {
-        const { handleDimensions, handleUnscaledRects } =
-          await generateHandleDimensions({
-            nodeUnscaledRects: nodeUnscaledRects,
-            handleElements: get().handleElements,
-            scale: get().viewport.scale,
-          });
-
-        return set((state) => ({
-          nodeElements: merge({}, state.nodeElements, nodeElements),
-          nodeUnscaledRects: merge(
-            {},
-            state.nodeUnscaledRects,
-            nodeUnscaledRects
-          ),
-          handleDimensions: merge({}, state.handleDimensions, handleDimensions),
-          handleUnscaledRects: merge(
-            {},
-            state.handleUnscaledRects,
-            handleUnscaledRects
-          ),
-        }));
-      },
-      timeout: 0,
-    }),
-
-    handlesDebouncedUpdater: createDebouncedUpdater({
-      create: () => ({
-        handleElements: {},
-      }),
-      update: async (state, nodeId, handleId, element) => {
-        return merge(state, {
-          handleElements: { [nodeId]: { [handleId]: element } },
-          handleUnscaledRects: {
-            [nodeId]: {
-              [handleId]: getUnscaledDOMRect(
-                await getBoundingClientRect(element),
-                get().viewport.scale
-              ),
-            },
-          },
-        });
-      },
-      onUpdate: async ({ handleElements }) => {
-        const { handleDimensions, handleUnscaledRects } =
-          await generateHandleDimensions({
-            nodeUnscaledRects: get().nodeUnscaledRects,
-            handleElements,
-            scale: get().viewport.scale,
-          });
-
-        console.log("handles changed");
-        return set((state) => {
-          console.log("updating state from handlesDebouncedUpdater");
-          return {
-            handleElements: merge({}, state.handleElements, handleElements),
-
-            handleUnscaledRects: merge(
-              {},
-              state.handleUnscaledRects,
-              handleUnscaledRects
-            ),
-
-            handleDimensions: merge(
-              {},
-              state.handleDimensions,
-              handleDimensions
-            ),
-          };
-        });
-      },
-      timeout: 0,
-    }),
   };
 };

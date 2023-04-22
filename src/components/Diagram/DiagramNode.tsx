@@ -39,6 +39,10 @@ export const useNode = (
 
 export const DiagramNodeFC: FC<{ nodeId: string }> = React.memo(
   ({ nodeId }) => {
+    const isSelected = useDiagram(
+      (state) => state.getNodeState(nodeId)?.selected
+    );
+
     return (
       <NodeContextProvider nodeId={nodeId}>
         <Layer id={nodeId}>
@@ -50,6 +54,8 @@ export const DiagramNodeFC: FC<{ nodeId: string }> = React.memo(
               bg="gray.700"
               p="4"
               py="2"
+              color="white"
+              outline={isSelected ? "2px solid" : "none"}
             >
               <Box
                 pos="absolute"

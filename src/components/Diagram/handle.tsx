@@ -1,12 +1,13 @@
 import { AbsoluteCenter, Circle } from "@chakra-ui/react";
 import useResizeObserver from "use-resize-observer";
 import { useGesture } from "@use-gesture/react";
-import { useRef, FC } from "react";
+import { useRef, FC, useLayoutEffect } from "react";
 import { useOnResize } from "../../hooks/sizeObserver";
 import { useDiagram } from "../../store/diagramStore";
 import { createEdge } from "../../store/utils";
 import { createHandleElementId } from "../../utils";
 import { useNode, useNodeContext } from "./DiagramNode";
+import { resizeObserver } from "../../utils/resizeObserver";
 
 interface HandleProps {
   id: string;
@@ -17,12 +18,19 @@ export const Handle: FC<HandleProps> = ({ id, type }) => {
   const ref = useRef<HTMLDivElement>(null);
   const { nodeId } = useNodeContext();
 
-  useResizeObserver({
-    ref,
-    onResize: () => {
-      useDiagram.getState().setHandleElement2(nodeId, id, ref.current!);
-    },
-  });
+  useLayoutEffect(() => {
+    resizeObserver.observe(ref.current!);
+    return () => {
+      resizeObserver.unobserve(ref.current!);
+    };
+  }, []);
+
+  // useResizeObserver({
+  //   ref,
+  //   onResize: () => {
+  //     useDiagram.getState().setHandleElement2(nodeId, id, ref.current!);
+  //   },
+  // });
 
   useGesture(
     {
@@ -118,6 +126,7 @@ export const Handle: FC<HandleProps> = ({ id, type }) => {
       size="16px"
       bg="white"
       pos="relative"
+      data-element-type="handle"
       data-id={id}
       data-node-id={nodeId}
       data-type={type}

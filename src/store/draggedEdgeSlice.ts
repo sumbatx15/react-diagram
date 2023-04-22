@@ -1,10 +1,10 @@
 import { StoreSlice } from ".";
 import { Edge } from "./diagramStore";
-import { DiagramNode, EdgePosition, NodeState, Vector } from "./utils";
+import { DiagramNode, StartEndPosition, NodeState, Vector } from "./utils";
 
 export type DraggedEdgeSlice = {
-  draggedEdge: EdgePosition;
-  updateDraggedEdge: (position: Partial<EdgePosition>) => void;
+  draggedEdge: StartEndPosition;
+  updateDraggedEdge: (position: Partial<StartEndPosition>) => void;
   isDraggedEdgeVisible: boolean;
   setDraggedEdgeVisible: (visible: boolean) => void;
 };

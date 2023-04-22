@@ -8,6 +8,7 @@ export type NodesSlice = {
   nodeData: Record<string, unknown>;
   nodeStates: Record<string, NodeState>;
   updateNodePosition: (id: string, position: Vector) => void;
+  setSelectedNodes: (ids: string[]) => void;
   addNode: (node: DiagramNode) => void;
   addNodes: (nodes: DiagramNode[]) => void;
   setNodes: (nodes: DiagramNode[]) => void;
@@ -28,7 +29,23 @@ export const createNodesSlice: StoreSlice<NodesSlice> = (set, get) => ({
   nodeData: {},
   nodeStates: {},
   nodeSizes: {},
-
+  setSelectedNodes: (ids) => {
+    set((state) => ({
+      nodeStates: {
+        ...state.nodeStates,
+        ...state.nodeIds.reduce(
+          (acc, id) => ({
+            ...acc,
+            [id]: {
+              ...state.nodeStates[id],
+              selected: ids.includes(id),
+            },
+          }),
+          {}
+        ),
+      },
+    }));
+  },
   addNode: (node) => {
     set((state) => ({
       nodeIds: [...state.nodeIds, node.id],

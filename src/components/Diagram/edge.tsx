@@ -8,7 +8,7 @@ import { ComponentProps, FC, memo, ReactNode } from "react";
 import { Edge as EdgeType, useDiagram } from "../../store/diagramStore";
 import {
   createEdgePosition,
-  createZeroEdgePosition,
+  createZeroStartEndPosition,
   createZeroVector,
   Vector,
 } from "../../store/utils";
