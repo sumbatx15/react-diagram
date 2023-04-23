@@ -1,26 +1,21 @@
 import { Box, HStack } from "@chakra-ui/react";
 import useResizeObserver from "@react-hook/resize-observer";
-import { animated, update, useSpring, config } from "@react-spring/web";
-import { useDrag, useGesture, useWheel } from "@use-gesture/react";
-import { FC, ReactNode, useRef } from "react";
-import { useEvent } from "react-use";
+import { animated, useSpring } from "@react-spring/web";
+import { useGesture } from "@use-gesture/react";
+import { clamp } from "lodash-es";
+import { FC, useRef, useState } from "react";
 import {
   createNode,
-  DiagramNode,
-  Edge as IEdge,
   getInDiagramPosition,
   useDiagram,
 } from "../../store/diagramStore";
 import { getNodesInsideRect } from "../../store/utils";
 import { FullscreenBtn } from "../Editor/FullscreenBtn";
-import {
-  calcBoxXY,
-  calculateWidthAndHeight,
-  SelectionBox,
-} from "../Selection/Selection";
+import { SelectionBox } from "../Selection/Selection";
 import { DiagramNodeFC } from "./DiagramNode";
-import { Edge, EdgeContainer, UserEdge } from "./edge";
+import { EdgeContainer, UserEdge } from "./edge";
 import { createNodesAndEdges } from "./utils";
+
 export const Diagram: FC = () => {
   const updateScale = useDiagram((state) => state.viewport.updateScale);
   const fitView = useDiagram((state) => state.fitView);
@@ -85,6 +80,7 @@ export const Diagram: FC = () => {
     }
   });
 
+  const [d, setD] = useState(0);
   useGesture(
     {
       onDrag: ({
@@ -137,8 +133,11 @@ export const Diagram: FC = () => {
         updatePosition({ x: newX, y: newY });
       },
       onDragEnd: () => {
+        console.log("onDragEnd:");
         const nodeIds = getNodesInsideRect();
+        // if (useDiagram.getState().viewport.showSelectionBox) {
         useDiagram.getState().setSelectedNodes(nodeIds);
+        // }
         useDiagram.setState((state) => ({
           viewport: {
             ...state.viewport,
@@ -179,11 +178,45 @@ export const Diagram: FC = () => {
           },
         }));
       },
-      onPinch: ({ offset: [d, a], origin: [ox, oy], da: [, da] }) => {
-        updateScale(d);
+      onPinch: ({
+        offset: [d],
+        origin: [ox, oy],
+        da: [, da],
+        delta: [d1, a1],
+      }) => {
+        const viewport = useDiagram.getState().viewport;
+        const prevScale = styles.scale.get();
+        const newScale = clamp(prevScale + d1, 0.1, 5);
+        console.log("newScale:", newScale);
+
+        // Calculate the offset of the viewport
+        const offsetX = -ox / d1 + styles.x.get();
+        const offsetY = -oy / d1 + styles.y.get();
+        const oox = ox * prevScale
+        const ooy = oy * prevScale
+
+        const newX = oox - ((oox - styles.x.get()) * newScale) / prevScale;
+        const newY = ooy - ((ooy - styles.y.get()) * newScale) / prevScale;
+
         api.set({
-          scale: d,
+          scale: newScale,
+          x: newX,
+          y: newY,
         });
+
+        useDiagram.setState((state) => ({
+          viewport: {
+            ...state.viewport,
+            scale: newScale,
+            position: {
+              x: newX,
+              y: newY,
+            },
+          },
+        }));
+      },
+      onPinchEnd: ({ cancel }) => {
+        cancel();
       },
     },
     {
@@ -236,6 +269,7 @@ export const Diagram: FC = () => {
         <button onClick={addMore}>add more</button>
         <button onClick={() => randomizePositions()}>randomize</button>
         <button onClick={() => fitView()}>fitView</button>
+        <button>{d}</button>
         <FullscreenBtn target={containerRef} />
       </HStack>
       <animated.div

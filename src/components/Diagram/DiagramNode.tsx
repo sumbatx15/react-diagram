@@ -47,15 +47,12 @@ export const DiagramNodeFC: FC<{ nodeId: string }> = React.memo(
               rounded="md"
               justify="center"
               align="center"
-              // shadow="xl"
               pos="relative"
               bg="gray.700"
               p="4"
-              py="2"
-              w="60px"
-              h="60px"
+              py="1"
+              w="100px"
               color="white"
-              // outline={isSelected ? "2px solid" : "none"}
             >
               <Box
                 pos="absolute"
@@ -69,10 +66,18 @@ export const DiagramNodeFC: FC<{ nodeId: string }> = React.memo(
               <Box
                 pos="absolute"
                 bottom="0"
-                right="50%"
+                right="60%"
                 transform="translate(+50%, 50%)"
               >
                 <Handle id="out" type="source" />
+              </Box>
+              <Box
+                pos="absolute"
+                bottom="0"
+                right="30%"
+                transform="translate(50%, 50%)"
+              >
+                <Handle id="out-2" type="source" />
               </Box>
             </Flex>
           </>
