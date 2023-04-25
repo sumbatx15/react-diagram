@@ -14,42 +14,26 @@ export const resizeObserver = new ResizeObserver(async (entries) => {
   const state = useDiagram.getState();
   const scale = state.viewport.scale;
 
-  const rects = entries.reduce(
-    (acc, entry) => {
-      const elementType = entry.target.getAttribute("data-element-type") as
-        | "node"
-        | "handle";
-      const id = entry.target.getAttribute("data-id") as string;
-      const nodeId = entry.target.getAttribute("data-node-id") as string;
-      const rect = getUnscaledDOMRect(
-        entry.target.getBoundingClientRect(),
-        scale
-      );
+  const nodeRects = entries.reduce((acc, { target }) => {
+    const nodeId =
+      target.getAttribute("data-node-id") ||
+      target.getAttribute("data-id") ||
+      "";
+    acc[nodeId] ||= getUnscaledNodeRect(
+      nodeId,
+      scale
+    ) /* getUnscaledDOMRect(target.getBoundingClientRect(), scale) */;
+    return acc;
+  }, {} as Record<string, DOMRectLike>);
 
-      if (elementType === "node") {
-        set(acc, id, { rect });
-      } else {
-        set(acc, [nodeId, "handles", id], rect);
-      }
-      return acc;
-    },
-    {} as Record<
-      string,
-      {
-        rect?: DOMRectLike;
-        handles?: Record<string, DOMRectLike>;
-      }
-    >
-  );
-
-  const { handleDimensions, nodeUnscaledRects } = Object.entries(rects).reduce(
-    (acc, [nodeId, { rect, handles }]) => {
-      const nodeRect = rect || getUnscaledNodeRect(nodeId, scale);
-      if (!nodeRect) return acc;
-      const handleRects = handles || getUnscaledHandlesRects(nodeId, scale);
-      if (!handleRects) return acc;
-
+  const { handleDimensions, nodeUnscaledRects } = Object.entries(
+    nodeRects
+  ).reduce(
+    (acc, [nodeId, nodeRect]) => {
       set(acc, ["nodeUnscaledRects", nodeId], nodeRect);
+
+      const handleRects = getUnscaledHandlesRects(nodeId, scale);
+      if (!handleRects) return acc;
       Object.entries(handleRects).forEach(([handleId, handleRect]) => {
         const dimensions = getHandleDimension(nodeRect, handleRect);
         set(acc, ["handleDimensions", nodeId, handleId], dimensions);
