@@ -9,11 +9,9 @@ import App from "./App";
 export const queryClient = new QueryClient();
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
-  <React.StrictMode>
     <ChakraProvider theme={theme}>
       <QueryClientProvider client={queryClient}>
         <App />
       </QueryClientProvider>
     </ChakraProvider>
-  </React.StrictMode>
 );

@@ -5,10 +5,6 @@ import { createDraggedEdgeSlice, DraggedEdgeSlice } from "./draggedEdgeSlice";
 import { createElementsSlice, ElementsSlice } from "./elementsSlice";
 import { createViewportSlice, ViewportSlice } from "./viewportSlice";
 import { subscribeWithSelector } from "zustand/middleware";
-import {
-  createNodeInternalsSlice,
-  NodeInternalsSlice,
-} from "./nodeInternalsSlice";
 import { createFitViewSlice, FitViewSlice } from "./fitviewSlice";
 
 export type StoreState = NodesSlice &
@@ -16,8 +12,8 @@ export type StoreState = NodesSlice &
   DraggedEdgeSlice &
   ElementsSlice &
   ViewportSlice &
-  NodeInternalsSlice &
   FitViewSlice;
+
 export type StoreSlice<T> = StateCreator<StoreState, [], [], T>;
 
 export const createDiagramStore = () => {
@@ -28,7 +24,6 @@ export const createDiagramStore = () => {
       ...createDraggedEdgeSlice(set, get, store),
       ...createElementsSlice(set, get, store),
       ...createViewportSlice(set, get, store),
-      ...createNodeInternalsSlice(set, get, store),
       ...createFitViewSlice(set, get, store),
     }))
   );

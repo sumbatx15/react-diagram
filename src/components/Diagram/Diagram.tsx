@@ -42,7 +42,7 @@ export const Diagram: FC = () => {
   };
 
   const addMore = () => {
-    const { edges, nodes } = createNodesAndEdges(10, 10);
+    const { edges, nodes } = createNodesAndEdges(15, 25);
     setNodes(nodes);
     setEdges(edges);
     setTimeout(() => {
@@ -192,8 +192,8 @@ export const Diagram: FC = () => {
         // Calculate the offset of the viewport
         const offsetX = -ox / d1 + styles.x.get();
         const offsetY = -oy / d1 + styles.y.get();
-        const oox = ox * prevScale
-        const ooy = oy * prevScale
+        const oox = ox * prevScale;
+        const ooy = oy * prevScale;
 
         const newX = oox - ((oox - styles.x.get()) * newScale) / prevScale;
         const newY = ooy - ((ooy - styles.y.get()) * newScale) / prevScale;
