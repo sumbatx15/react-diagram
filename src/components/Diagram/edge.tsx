@@ -107,32 +107,37 @@ export const StatefulEdge: FC<{ edge: EdgeType }> = memo(({ edge }) => {
     start: [start.x, start.y],
     end: [end.x, end.y],
     d: getCubicBezierPathData(start, end),
+    visible: true,
   }));
 
   useDiagram((state) => {
-    const start =
-      state.getHandleCenter(edge.source, edge.sourceHandle) ||
-      createZeroVector();
-    const end =
-      state.getHandleCenter(edge.target, edge.targetHandle) ||
-      createZeroVector();
+    const start = state.getHandleCenter(edge.source, edge.sourceHandle);
+    const end = state.getHandleCenter(edge.target, edge.targetHandle);
+
+    if (!start || !end) {
+      if (!styles.visible.get()) return;
+      return api.set({ visible: false });
+    }
+
     if (
       start.x !== styles.start.get()[0] ||
       start.y !== styles.start.get()[1] ||
       end.x !== styles.end.get()[0] ||
-      end.y !== styles.end.get()[1]
+      end.y !== styles.end.get()[1] ||
+      !styles.visible.get()
     ) {
       api.set({
         start: [start.x, start.y],
         end: [end.x, end.y],
+        visible: true,
         d: getBezierPath({
           sourceX: start.x,
           sourceY: start.y,
           targetX: end.x,
           targetY: end.y,
-          sourcePosition: Position.Bottom,
-          targetPosition: Position.Top,
-          curvature: 0.1,
+          sourcePosition: Position.Right,
+          targetPosition: Position.Left,
+          curvature: 0.25,
         })[0],
       });
     }
@@ -145,6 +150,7 @@ export const StatefulEdge: FC<{ edge: EdgeType }> = memo(({ edge }) => {
         zIndex: 100,
         pointerEvents: "auto",
         touchAction: "none",
+        display: styles.visible.to((v) => (v ? "initial" : "none")),
       }}
       d={styles.d}
       stroke="black"

@@ -381,3 +381,35 @@ export const getNodesInsideRect = () => {
     return overlapPercentage >= threshold;
   });
 };
+
+export const getUnscaledNodeRect = (
+  nodeId: string,
+  scale: number
+): DOMRectLike | null => {
+  const element = document.querySelector(
+    `[data-id="${nodeId}"][data-element-type="node"]`
+  );
+  if (!element) return null;
+  return getUnscaledDOMRect(element.getBoundingClientRect(), scale);
+};
+
+export const getUnscaledHandlesRects = (
+  nodeId: string,
+  scale: number
+): Record<string, DOMRectLike> => {
+  const elements = Array.from(
+    document.querySelectorAll(
+      `[data-node-id="${nodeId}"][data-element-type="handle"]`
+    )
+  ) as HTMLElement[];
+  if (!elements) return {};
+  return elements.reduce((acc, element) => {
+    return {
+      ...acc,
+      [element.dataset.id as string]: getUnscaledDOMRect(
+        element.getBoundingClientRect(),
+        scale
+      ),
+    };
+  }, {});
+};

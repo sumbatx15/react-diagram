@@ -3,16 +3,11 @@ import { useDiagram } from "../store/diagramStore";
 import { ElementsSlice } from "../store/elementsSlice";
 import {
   DOMRectLike,
-  getBoundingClientRect,
   getHandleDimension,
   getUnscaledDOMRect,
+  getUnscaledHandlesRects,
+  getUnscaledNodeRect,
 } from "../store/utils";
-function time(label: string, block: () => void) {
-  console.time(label);
-  const rers = block();
-  console.timeEnd(label);
-  return rers;
-}
 
 export const resizeObserver = new ResizeObserver(async (entries) => {
   console.time("generating rects");
@@ -32,40 +27,45 @@ export const resizeObserver = new ResizeObserver(async (entries) => {
       );
 
       if (elementType === "node") {
-        acc.node[id] = rect;
+        set(acc, id, { rect });
       } else {
-        acc[elementType].push({
-          elementType,
-          id,
-          rect,
-          nodeId,
-        });
+        set(acc, [nodeId, "handles", id], rect);
       }
       return acc;
     },
-    {
-      node: {} as Record<string, DOMRectLike>,
-      handle: [] as {
-        elementType: "handle";
-        id: string;
-        rect: DOMRectLike;
-        nodeId: string;
-      }[],
-    }
+    {} as Record<
+      string,
+      {
+        rect?: DOMRectLike;
+        handles?: Record<string, DOMRectLike>;
+      }
+    >
   );
 
-  const handleDimensions = rects.handle.reduce((acc, h) => {
-    const nodeRect = rects.node[h.nodeId] || state.nodeUnscaledRects[h.nodeId];
-    const dimensions = getHandleDimension(nodeRect, h.rect);
-    set(acc, [h.nodeId, h.id], dimensions);
-    return acc;
-  }, {} as ElementsSlice["handleDimensions"]);
+  const { handleDimensions, nodeUnscaledRects } = Object.entries(rects).reduce(
+    (acc, [nodeId, { rect, handles }]) => {
+      const nodeRect = rect || getUnscaledNodeRect(nodeId, scale);
+      if (!nodeRect) return acc;
+      const handleRects = handles || getUnscaledHandlesRects(nodeId, scale);
+      if (!handleRects) return acc;
+
+      set(acc, ["nodeUnscaledRects", nodeId], nodeRect);
+      Object.entries(handleRects).forEach(([handleId, handleRect]) => {
+        const dimensions = getHandleDimension(nodeRect, handleRect);
+        set(acc, ["handleDimensions", nodeId, handleId], dimensions);
+      });
+
+      return acc;
+    },
+    {} as {
+      nodeUnscaledRects: ElementsSlice["nodeUnscaledRects"];
+      handleDimensions: ElementsSlice["handleDimensions"];
+    }
+  );
   console.timeEnd("generating rects");
 
   useDiagram.setState((state) => ({
     handleDimensions: merge(state.handleDimensions, handleDimensions),
-    nodeUnscaledRects: merge(state.nodeUnscaledRects, rects.node),
+    nodeUnscaledRects: merge(state.nodeUnscaledRects, nodeUnscaledRects),
   }));
-
-  console.log("resizeObserver", entries.length, rects);
 });

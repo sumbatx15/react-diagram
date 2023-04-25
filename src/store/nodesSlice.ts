@@ -20,9 +20,6 @@ export type NodesSlice = {
   getNodeState: (id: string) => NodeState | undefined;
   getNodeData: (id: string) => unknown | undefined;
   getNodes: () => DiagramNode[];
-
-  nodeSizes: Record<string, DOMRectReadOnly>;
-  updateNodeSize: (id: string, rect: DOMRectReadOnly) => void;
 };
 
 // eslint-disable-next-line react-func/max-lines-per-function
@@ -31,7 +28,6 @@ export const createNodesSlice: StoreSlice<NodesSlice> = (set, get) => ({
   nodePositions: {},
   nodeData: {},
   nodeStates: {},
-  nodeSizes: {},
   setSelectedNodes: (ids) => {
     set((state) => ({
       nodeStates: {
@@ -200,14 +196,5 @@ export const createNodesSlice: StoreSlice<NodesSlice> = (set, get) => ({
   getNodeData: (id) => {
     const state = get();
     return state.nodeData[id];
-  },
-
-  updateNodeSize: (id, rect) => {
-    set((state) => ({
-      nodeSizes: {
-        ...state.nodeSizes,
-        [id]: rect,
-      },
-    }));
   },
 });

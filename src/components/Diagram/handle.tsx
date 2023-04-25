@@ -22,6 +22,7 @@ export const Handle: FC<HandleProps> = ({ id, type }) => {
     resizeObserver.observe(ref.current!);
     return () => {
       resizeObserver.unobserve(ref.current!);
+      useDiagram.getState().clearHandleDimensions(nodeId, id);
     };
   }, []);
 
@@ -123,7 +124,7 @@ export const Handle: FC<HandleProps> = ({ id, type }) => {
       className="handle"
       ref={ref}
       zIndex="100"
-      size="8px"
+      size="16px"
       bg="white"
       pos="relative"
       data-element-type="handle"
