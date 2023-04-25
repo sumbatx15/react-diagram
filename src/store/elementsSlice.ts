@@ -1,39 +1,20 @@
+import { debounce, merge } from "lodash-es";
+import { createSelector } from "reselect";
 import { StoreSlice } from ".";
-import { debounce, merge, pick } from "lodash-es";
 import {
+  createZeroVector,
   DOMRectLike,
   getBoundingClientRect,
-  generateHandleDimensionsOnHandlesResize,
-  HandleDimensions,
-  Vector,
-  createZeroVector,
   getHandleCenter,
   getUnscaledDOMRect,
-  generateHandleDimensions,
-  getHandleDimension,
-  getHandlePositions,
+  HandleDimensions,
+  Vector,
 } from "./utils";
-import {
-  createDebouncedUpdater,
-  DebouncedUpdater,
-} from "../utils/debouncedUpdater";
-import { createSelector } from "reselect";
 
 interface NodeRectSelectorParams {
   handleElement: HTMLElement;
   scale: number;
 }
-
-const nodeRectSelector = createSelector(
-  (state: NodeRectSelectorParams) => state.handleElement,
-  (state: NodeRectSelectorParams) => state.scale,
-  async (handleElement, scale) => {
-    const nodeElement = handleElement.closest(
-      '[data-type="node"]'
-    ) as HTMLElement;
-    return getUnscaledDOMRect(await getBoundingClientRect(nodeElement), scale);
-  }
-);
 
 class ElementsUpdater {
   private elements: Pick<
