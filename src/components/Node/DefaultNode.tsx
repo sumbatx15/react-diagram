@@ -5,6 +5,7 @@ import { Box, Text } from "@chakra-ui/react";
 import { useNodeData } from "../Diagram/WrappedNode";
 export const DefaultNode: NodeFC = ({ id }) => {
   const [data] = useNodeData();
+  console.log('data:', data)
   return (
     <div
       // shadow="xl"

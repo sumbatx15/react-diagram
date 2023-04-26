@@ -108,6 +108,7 @@ export const Handle: FC<HandleProps> = ({ id, type, placement }) => {
               sourceHandle: source.dataset.id as string,
               targetHandle: target.dataset.id as string,
               data: "",
+              animated: true,
             })
           );
         }

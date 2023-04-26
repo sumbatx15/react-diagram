@@ -159,19 +159,19 @@ export function createNodesAndEdges(xNodes = 10, yNodes = 10) {
         ...createNode(),
         id: `stress-${nodeId.toString()}`,
         position: { x: x * 150, y: y * 60 },
+        type: "custom",
       };
       nodes.push(node);
 
       if (recentNodeId && nodeId <= xNodes * yNodes) {
-        Array.from({ length: 3 }).forEach((_, i) => {
-          edges.push({
-            id: `${x}-${y}`,
-            source: `stress-${recentNodeId.toString()}`,
-            target: `stress-${nodeId.toString()}`,
-            sourceHandle: `out`,
-            targetHandle: "in",
-            data: "",
-          });
+        edges.push({
+          id: `${x}-${y}`,
+          source: `stress-${recentNodeId.toString()}`,
+          target: `stress-${nodeId.toString()}`,
+          sourceHandle: `out`,
+          targetHandle: "in",
+          data: "",
+          // animated: true,
         });
       }
 

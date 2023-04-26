@@ -17,13 +17,19 @@ import { DraggedEdge, EdgeContainer } from "./edge";
 import { createNodesAndEdges } from "./utils";
 import { DefaultNode } from "../Node/DefaultNode";
 import { WrappedNode } from "./WrappedNode";
-
-export const Diagram: FC<{
+import { EdgeRenderer } from "../EdgeRenderer/EdgeRenderer";
+export interface DiagramProps {
   nodeTypes?: NodeTypes;
   edgeTypes?: EdgeTypes;
   minZoom?: number;
   maxZoom?: number;
-}> = ({ nodeTypes = {}, edgeTypes = {}, minZoom = 0.1, maxZoom = 5 }) => {
+}
+export const Diagram: FC<DiagramProps> = ({
+  nodeTypes = {},
+  edgeTypes = {},
+  minZoom = 0.1,
+  maxZoom = 5,
+}) => {
   const updateScale = useDiagram((state) => state.viewport.updateScale);
   const fitView = useDiagram((state) => state.fitView);
   const updatePosition = useDiagram((state) => state.viewport.updatePosition);
@@ -287,7 +293,7 @@ export const Diagram: FC<{
           <DraggedEdge />
         </EdgeContainer>
         <SelectionBox />
-        <EdgeContainer />
+        <EdgeRenderer edgeTypes={edgeTypes} />
         {nodeIds.map((id) => {
           const Component =
             nodeTypes[useDiagram.getState().nodeTypes[id]] ||

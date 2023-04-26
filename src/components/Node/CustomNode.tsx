@@ -1,7 +1,7 @@
 import { FC } from "react";
 import { NodeFC } from "../../types";
 import { Handle } from "../Diagram/handle";
-import { Box, Input, Text } from "@chakra-ui/react";
+import { Box, Button, Input, Text } from "@chakra-ui/react";
 import { useNode, useNodeData, useNodePositoin } from "../Diagram/WrappedNode";
 export const CustomNode: NodeFC = ({ id }) => {
   const [data, setData] = useNodeData<string>();
@@ -9,6 +9,7 @@ export const CustomNode: NodeFC = ({ id }) => {
     <div
       // shadow="xl"
       style={{
+        maxWidth: "200px",
         borderRadius: "4px",
         position: "relative",
         background: "#070708",
@@ -20,6 +21,9 @@ export const CustomNode: NodeFC = ({ id }) => {
       </Box>
       <Text /* onClick={toggle} */>CustomNode - {id}</Text>
       <Input value={data} onInput={(e) => setData(e.target.value)} />
+      <Input value={data} onInput={(e) => setData(e.target.value)} />
+      <Text>Heloo</Text>
+      <Button>Click me </Button>
       <Box pos="absolute" right="0" top="50%" transform="translate(+50%, -50%)">
         <Handle id="out" type="source" placement="right" />
       </Box>

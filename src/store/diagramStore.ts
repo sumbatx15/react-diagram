@@ -15,15 +15,17 @@ const createNodeState = (): NodeState => ({
 });
 const createNodeData = (): any => "";
 
-export const createNode = () => ({
+export const createNode = (): DiagramNode => ({
   id: uniqid(),
   position: createVector(),
   data: createNodeData(),
   state: createNodeState(),
+  type: "custom",
 });
 
 export interface DiagramEdge {
   id: string;
+  type?: string;
   source: string;
   target: string;
   sourceHandle: string;

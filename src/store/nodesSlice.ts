@@ -8,6 +8,7 @@ export type NodesSlice = {
   nodeData: Record<string, any>;
   nodeStates: Record<string, NodeState>;
   nodeTypes: Record<string, string>;
+  deleteSelectedNodes: () => void;
   updateNodeState: (id: string, state: NodeState) => void;
   updateNodeData: <T = any>(id: string, data: T) => void;
   updateNodePosition: (id: string, position: Vector) => void;
@@ -32,6 +33,27 @@ export const createNodesSlice: StoreSlice<NodesSlice> = (set, get) => ({
   nodeData: {},
   nodeStates: {},
   nodeTypes: {},
+  deleteSelectedNodes: () => {
+    const state = get();
+    const selectedNodeIds = state.nodeIds.filter(
+      (id) => state.nodeStates[id]?.selected ?? false
+    );
+    set((state) => ({
+      nodeIds: state.nodeIds.filter((id) => !selectedNodeIds.includes(id)),
+      nodePositions: pickBy(state.nodePositions, (_, id) => {
+        return !selectedNodeIds.includes(id);
+      }),
+      nodeData: pickBy(state.nodeData, (_, id) => {
+        return !selectedNodeIds.includes(id);
+      }),
+      nodeStates: pickBy(state.nodeStates, (_, id) => {
+        return !selectedNodeIds.includes(id);
+      }),
+      nodeTypes: pickBy(state.nodeTypes, (_, id) => {
+        return !selectedNodeIds.includes(id);
+      }),
+    }));
+  },
 
   updateNodeState: (id, state) => {
     set((state) => ({

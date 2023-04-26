@@ -15,7 +15,7 @@ export interface NodeCmpProps {
 
 export const Draggable: FC<LayerProps> = ({ id, children }) => {
   const ref = useRef<HTMLElement>(null);
-
+  console.log('Draggable id:', id)
   useLayoutEffect(() => {
     resizeObserver.observe(ref.current!);
     return () => {

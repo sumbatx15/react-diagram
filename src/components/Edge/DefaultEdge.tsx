@@ -1,12 +1,11 @@
-import { animated, useSpring } from "@react-spring/web";
-import { FC, memo } from "react";
-import { DiagramEdge, useDiagram } from "../../store/diagramStore";
-import { createEdgePosition } from "../../store/utils";
-import { getBezierPath } from "../Diagram/utils";
+import { animated as a, useSpring } from "@react-spring/web";
+import { memo } from "react";
+import { useDiagram } from "../../store/diagramStore";
 import { EdgeFC } from "../../types";
+import { getBezierPath } from "../Diagram/utils";
 
 export const DefaultEdge: EdgeFC = memo(
-  ({ source, sourceHandle, target, targetHandle }) => {
+  ({ source, sourceHandle, target, targetHandle, animated }) => {
     const [styles, api] = useSpring(() => ({
       start: [0, 0],
       end: [0, 0],
@@ -50,7 +49,7 @@ export const DefaultEdge: EdgeFC = memo(
     });
 
     return (
-      <animated.path
+      <a.path
         style={{
           zIndex: 100,
           pointerEvents: "auto",
@@ -61,20 +60,22 @@ export const DefaultEdge: EdgeFC = memo(
         stroke="black"
         strokeWidth="1"
         strokeLinecap="round"
-        // strokeDasharray="10 6"
-        // strokeDashoffset="0"
+        strokeDasharray={animated ? "10 6" : ""}
+        strokeDashoffset={animated ? "0" : ""}
         fill="none"
       >
-        {/* <animate
-          attributeName="stroke-dashoffset"
-          attributeType="XML"
-          from="0"
-          to="-16"
-          dur="0.45s"
-          repeatCount="indefinite"
-          begin="0s"
-        /> */}
-      </animated.path>
+        {animated && (
+          <animate
+            attributeName="stroke-dashoffset"
+            attributeType="XML"
+            from="0"
+            to="-16"
+            dur="0.45s"
+            repeatCount="indefinite"
+            begin="0s"
+          />
+        )}
+      </a.path>
     );
   }
 );
