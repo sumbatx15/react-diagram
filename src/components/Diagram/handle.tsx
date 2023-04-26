@@ -1,13 +1,10 @@
-import { AbsoluteCenter, Circle } from "@chakra-ui/react";
-import useResizeObserver from "use-resize-observer";
+import { Circle } from "@chakra-ui/react";
 import { useGesture } from "@use-gesture/react";
-import { useRef, FC, useLayoutEffect } from "react";
-import { useOnResize } from "../../hooks/sizeObserver";
+import { FC, useLayoutEffect, useRef } from "react";
 import { useDiagram } from "../../store/diagramStore";
 import { createEdge } from "../../store/utils";
-import { createHandleElementId } from "../../utils";
-import { useNode, useNodeContext } from "./DiagramNode";
 import { resizeObserver } from "../../utils/resizeObserver";
+import { useNodeContext } from "./WrappedNode";
 import { Placement } from "./utils";
 
 interface HandleProps {

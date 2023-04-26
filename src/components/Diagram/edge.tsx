@@ -5,7 +5,7 @@ import {
   useSpring,
 } from "@react-spring/web";
 import { ComponentProps, FC, memo, ReactNode } from "react";
-import { Edge as EdgeType, useDiagram } from "../../store/diagramStore";
+import { DiagramEdge as EdgeType, useDiagram } from "../../store/diagramStore";
 import { createEdgePosition, Vector } from "../../store/utils";
 import { getBezierPath, PlacementEnum } from "./utils";
 
@@ -176,7 +176,7 @@ export const StatefulEdge: FC<{ edge: EdgeType }> = memo(({ edge }) => {
   );
 });
 
-export const UserEdge: FC = () => {
+export const DraggedEdge: FC = () => {
   const isVisible = useDiagram((state) => state.isDraggedEdgeVisible);
 
   const [styles, api] = useSpring(() => ({

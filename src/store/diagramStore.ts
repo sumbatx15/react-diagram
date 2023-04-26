@@ -13,7 +13,7 @@ const createNodeState = (): NodeState => ({
   dragging: false,
   disabled: false,
 });
-const createNodeData = (): any => ({});
+const createNodeData = (): any => "";
 
 export const createNode = () => ({
   id: uniqid(),
@@ -22,13 +22,14 @@ export const createNode = () => ({
   state: createNodeState(),
 });
 
-export interface Edge {
+export interface DiagramEdge {
   id: string;
   source: string;
   target: string;
   sourceHandle: string;
   targetHandle: string;
   data: unknown;
+  animated?: boolean;
 }
 
 export type { StartEndPosition as EdgePosition };

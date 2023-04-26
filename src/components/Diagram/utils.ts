@@ -1,4 +1,4 @@
-import { createNode, DiagramNode, Edge } from "../../store/diagramStore";
+import { createNode, DiagramNode, DiagramEdge } from "../../store/diagramStore";
 
 export enum PlacementEnum {
   Left = "left",
@@ -149,7 +149,7 @@ export function getBezierEdgeCenter({
 
 export function createNodesAndEdges(xNodes = 10, yNodes = 10) {
   const nodes: DiagramNode[] = [];
-  const edges: Edge[] = [];
+  const edges: DiagramEdge[] = [];
   let nodeId = 1;
   let recentNodeId = null;
 
@@ -168,7 +168,7 @@ export function createNodesAndEdges(xNodes = 10, yNodes = 10) {
             id: `${x}-${y}`,
             source: `stress-${recentNodeId.toString()}`,
             target: `stress-${nodeId.toString()}`,
-            sourceHandle: `out${i + 1}`,
+            sourceHandle: `out`,
             targetHandle: "in",
             data: "",
           });

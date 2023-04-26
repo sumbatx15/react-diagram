@@ -1,5 +1,5 @@
 import { StoreSlice } from ".";
-import { Edge } from "./diagramStore";
+import { DiagramEdge } from "./diagramStore";
 import { DiagramNode, StartEndPosition, NodeState, Vector } from "./utils";
 
 export type DraggedEdgeSlice = {

@@ -3,17 +3,11 @@ import { MutableRefObject } from "react";
 import { StoreState } from ".";
 import {
   calcBoxXY,
-  calculateWidthAndHeight
+  calculateWidthAndHeight,
 } from "../components/Selection/Selection";
-import {
-  Edge, useDiagram
-} from "./diagramStore";
-import { ILayer } from "./layersStore";
+import { DiagramEdge, useDiagram } from "./diagramStore";
 
-export const isConstrainProportions = (type: ILayer["type"]) => {
-  return ["image", "icon"].includes(type);
-};
-export const createEdge = (edge: Omit<Edge, "id">) => {
+export const createEdge = (edge: Omit<DiagramEdge, "id">) => {
   return {
     id: `${edge.source}-${edge.sourceHandle}-${edge.target}-${edge.targetHandle}`,
     ...edge,
@@ -73,7 +67,7 @@ export const createZeroVector = () => {
   return { x: 0, y: 0 };
 };
 
-export const createEdgePosition = (state: StoreState, edge: Edge) => {
+export const createEdgePosition = (state: StoreState, edge: DiagramEdge) => {
   const start =
     state.getHandleCenter(edge.source, edge.sourceHandle) || createZeroVector();
   const end =

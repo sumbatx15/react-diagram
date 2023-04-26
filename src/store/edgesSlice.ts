@@ -1,5 +1,5 @@
 import { StoreSlice } from ".";
-import { Edge } from "./diagramStore";
+import { DiagramEdge } from "./diagramStore";
 import {
   createEdgePosition,
   createZeroStartEndPosition,
@@ -7,13 +7,13 @@ import {
 } from "./utils";
 
 export type EdgesSlice = {
-  edges: Edge[];
+  edges: DiagramEdge[];
   edgePositions: Record<string, StartEndPosition>;
   updateEdgePosition: (id: string, position: StartEndPosition) => void;
-  addEdge: (edge: Edge) => void;
-  addEdges: (edges: Edge[]) => void;
-  setEdges: (edges: Edge[]) => void;
-  getEdge: (id: string) => Edge | undefined;
+  addEdge: (edge: DiagramEdge) => void;
+  addEdges: (edges: DiagramEdge[]) => void;
+  setEdges: (edges: DiagramEdge[]) => void;
+  getEdge: (id: string) => DiagramEdge | undefined;
 };
 
 // eslint-disable-next-line react-func/max-lines-per-function

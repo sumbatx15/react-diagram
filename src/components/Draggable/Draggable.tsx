@@ -2,9 +2,6 @@ import { animated, useSpring } from "@react-spring/web";
 import { useGesture } from "@use-gesture/react";
 import { FC, useLayoutEffect, useRef } from "react";
 import { useDiagram } from "../../store/diagramStore";
-import { useNode } from "../Diagram/DiagramNode";
-import useResizeObserver from "@react-hook/resize-observer";
-import { useOnResize } from "../../hooks/sizeObserver";
 import { resizeObserver } from "../../utils/resizeObserver";
 
 export interface LayerProps {
@@ -12,7 +9,11 @@ export interface LayerProps {
   children?: React.ReactNode;
 }
 
-export const Layer: FC<LayerProps> = ({ id, children }) => {
+export interface NodeCmpProps {
+  id: string;
+}
+
+export const Draggable: FC<LayerProps> = ({ id, children }) => {
   const ref = useRef<HTMLElement>(null);
 
   useLayoutEffect(() => {
@@ -21,10 +22,6 @@ export const Layer: FC<LayerProps> = ({ id, children }) => {
       resizeObserver.unobserve(ref.current!);
     };
   }, []);
-
-  // useResizeObserver(ref, (entry, re) => {
-  //   useDiagram.getState().setNodeElement2(id, ref.current!, entry.contentRect);
-  // });
 
   const [styles, api] = useSpring(() => ({
     x: useDiagram.getState().getNode(id)?.position.x || 0,
@@ -71,8 +68,10 @@ export const Layer: FC<LayerProps> = ({ id, children }) => {
         if (
           event.target instanceof HTMLInputElement ||
           (event.target as HTMLElement).classList.contains("handle")
-        )
+        ) {
+          event.stopPropagation();
           return cancel();
+        }
 
         event.stopPropagation();
         event.stopImmediatePropagation();

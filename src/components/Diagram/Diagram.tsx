@@ -2,7 +2,7 @@ import { Box, HStack } from "@chakra-ui/react";
 import useResizeObserver from "@react-hook/resize-observer";
 import { animated, useSpring } from "@react-spring/web";
 import { useGesture } from "@use-gesture/react";
-import { clamp, memoize } from "lodash-es";
+import { clamp } from "lodash-es";
 import { FC, useRef, useState } from "react";
 import {
   createNode,
@@ -10,13 +10,20 @@ import {
   useDiagram,
 } from "../../store/diagramStore";
 import { getNodesInsideRect } from "../../store/utils";
+import { EdgeTypes, NodeTypes } from "../../types";
 import { FullscreenBtn } from "../Editor/FullscreenBtn";
 import { SelectionBox } from "../Selection/Selection";
-import { DiagramNodeFC } from "./DiagramNode";
-import { EdgeContainer, UserEdge } from "./edge";
+import { DraggedEdge, EdgeContainer } from "./edge";
 import { createNodesAndEdges } from "./utils";
+import { DefaultNode } from "../Node/DefaultNode";
+import { WrappedNode } from "./WrappedNode";
 
-export const Diagram: FC = () => {
+export const Diagram: FC<{
+  nodeTypes?: NodeTypes;
+  edgeTypes?: EdgeTypes;
+  minZoom?: number;
+  maxZoom?: number;
+}> = ({ nodeTypes = {}, edgeTypes = {}, minZoom = 0.1, maxZoom = 5 }) => {
   const updateScale = useDiagram((state) => state.viewport.updateScale);
   const fitView = useDiagram((state) => state.fitView);
   const updatePosition = useDiagram((state) => state.viewport.updatePosition);
@@ -38,7 +45,10 @@ export const Diagram: FC = () => {
     fitView();
   };
   const handleAdd = () => {
-    addNode(createNode());
+    addNode({
+      ...createNode(),
+      type: Math.random() > 0.5 ? "default" : "custom",
+    });
   };
 
   const addMore = () => {
@@ -161,7 +171,11 @@ export const Diagram: FC = () => {
         const xs = (e.clientX - x) / scale;
         const ys = (e.clientY - y) / scale;
 
-        const newScale = Math.exp(dy * -0.00125) * scale;
+        const newScale = clamp(
+          Math.exp(dy * -0.00125) * scale,
+          minZoom,
+          maxZoom
+        );
         const newX = e.clientX - xs * newScale;
         const newY = e.clientY - ys * newScale;
         api.set({
@@ -247,26 +261,6 @@ export const Diagram: FC = () => {
       overflow="hidden"
       style={{ touchAction: "none" }}
       ref={containerRef}
-      // onDoubleClickCapture={(e) => {
-      //   const scale = styles.scale.get();
-      //   const x = styles.x.get();
-      //   const y = styles.y.get();
-
-      //   const xs = (e.clientX - x) / scale;
-      //   const ys = (e.clientY - y) / scale;
-
-      //   const newScale = Math.exp(300 * 0.00125) * styles.scale.get();
-      //   const newX = e.clientX - xs * newScale;
-      //   const newY = e.clientY - ys * newScale;
-      //   api.start({
-      //     scale: newScale,
-      //     x: newX,
-      //     y: newY,
-      //     immediate: true,
-      //   });
-      //   updateScale(newScale);
-      //   updatePosition({ x: newX, y: newY });
-      // }}
     >
       <HStack zIndex={100} pos="absolute">
         <button onClick={handleAdd}>addnode</button>
@@ -290,13 +284,17 @@ export const Diagram: FC = () => {
         }}
       >
         <EdgeContainer style={{ zIndex: 100 }}>
-          <UserEdge />
+          <DraggedEdge />
         </EdgeContainer>
         <SelectionBox />
         <EdgeContainer />
-        {nodeIds.map((id) => (
-          <DiagramNodeFC nodeId={id} key={id} />
-        ))}
+        {nodeIds.map((id) => {
+          const Component =
+            nodeTypes[useDiagram.getState().nodeTypes[id]] ||
+            nodeTypes["default"] ||
+            DefaultNode;
+          return <WrappedNode nodeId={id} key={id} Component={Component} />;
+        })}
       </animated.div>
     </Box>
   );

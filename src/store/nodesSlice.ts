@@ -5,8 +5,11 @@ import { DiagramNode, NodeState, Vector } from "./utils";
 export type NodesSlice = {
   nodeIds: string[];
   nodePositions: Record<string, Vector>;
-  nodeData: Record<string, unknown>;
+  nodeData: Record<string, any>;
   nodeStates: Record<string, NodeState>;
+  nodeTypes: Record<string, string>;
+  updateNodeState: (id: string, state: NodeState) => void;
+  updateNodeData: <T = any>(id: string, data: T) => void;
   updateNodePosition: (id: string, position: Vector) => void;
   updateSelectedNodesPositions: (delta: Vector) => void;
   setSelectedNodes: (ids: string[]) => void;
@@ -28,6 +31,28 @@ export const createNodesSlice: StoreSlice<NodesSlice> = (set, get) => ({
   nodePositions: {},
   nodeData: {},
   nodeStates: {},
+  nodeTypes: {},
+
+  updateNodeState: (id, state) => {
+    set((state) => ({
+      nodeStates: {
+        ...state.nodeStates,
+        [id]: {
+          ...state.nodeStates[id],
+          ...state,
+        },
+      },
+    }));
+  },
+
+  updateNodeData: (id, data) => {
+    set((state) => ({
+      nodeData: {
+        ...state.nodeData,
+        [id]: data,
+      },
+    }));
+  },
   setSelectedNodes: (ids) => {
     set((state) => ({
       nodeStates: {
@@ -75,6 +100,12 @@ export const createNodesSlice: StoreSlice<NodesSlice> = (set, get) => ({
         ...state.nodePositions,
         [node.id]: node.position,
       },
+      ...(node.type && {
+        nodeTypes: {
+          ...state.nodeTypes,
+          [node.id]: node.type,
+        },
+      }),
       nodeData: {
         ...state.nodeData,
         [node.id]: node.data,

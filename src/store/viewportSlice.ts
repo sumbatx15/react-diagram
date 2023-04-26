@@ -1,6 +1,6 @@
 import { merge } from "lodash-es";
 import { StoreSlice } from ".";
-import { Edge } from "./diagramStore";
+import { DiagramEdge } from "./diagramStore";
 import {
   DiagramNode,
   StartEndPosition,
