@@ -1,24 +1,25 @@
 import { createNode, DiagramNode, Edge } from "../../store/diagramStore";
 
-export enum Position {
+export enum PlacementEnum {
   Left = "left",
   Top = "top",
   Right = "right",
   Bottom = "bottom",
 }
 
+export type Placement = PlacementEnum | `${PlacementEnum}`;
 export interface GetBezierPathParams {
   sourceX: number;
   sourceY: number;
-  sourcePosition?: Position;
+  sourcePlacement?: Placement;
   targetX: number;
   targetY: number;
-  targetPosition?: Position;
+  targetPlacement?: Placement;
   curvature?: number;
 }
 
 interface GetControlWithCurvatureParams {
-  pos: Position;
+  pos: Placement;
   x1: number;
   y1: number;
   x2: number;
@@ -43,24 +44,26 @@ function getControlWithCurvature({
   c,
 }: GetControlWithCurvatureParams): [number, number] {
   switch (pos) {
-    case Position.Left:
+    case "left":
       return [x1 - calculateControlOffset(x1 - x2, c), y1];
-    case Position.Right:
+    case "right":
       return [x1 + calculateControlOffset(x2 - x1, c), y1];
-    case Position.Top:
+    case "top":
       return [x1, y1 - calculateControlOffset(y1 - y2, c)];
-    case Position.Bottom:
+    case "bottom":
       return [x1, y1 + calculateControlOffset(y2 - y1, c)];
+    default:
+      return [x1, y1];
   }
 }
 
 export function getBezierPath({
   sourceX,
   sourceY,
-  sourcePosition = Position.Bottom,
+  sourcePlacement = "right",
   targetX,
   targetY,
-  targetPosition = Position.Top,
+  targetPlacement = "left",
   curvature = 0.25,
 }: GetBezierPathParams): [
   path: string,
@@ -70,21 +73,23 @@ export function getBezierPath({
   offsetY: number
 ] {
   const [sourceControlX, sourceControlY] = getControlWithCurvature({
-    pos: sourcePosition,
+    pos: sourcePlacement,
     x1: sourceX,
     y1: sourceY,
     x2: targetX,
     y2: targetY,
     c: curvature,
   });
+
   const [targetControlX, targetControlY] = getControlWithCurvature({
-    pos: targetPosition,
+    pos: targetPlacement,
     x1: targetX,
     y1: targetY,
     x2: sourceX,
     y2: sourceY,
     c: curvature,
   });
+
   const [labelX, labelY, offsetX, offsetY] = getBezierEdgeCenter({
     sourceX,
     sourceY,
@@ -158,13 +163,15 @@ export function createNodesAndEdges(xNodes = 10, yNodes = 10) {
       nodes.push(node);
 
       if (recentNodeId && nodeId <= xNodes * yNodes) {
-        edges.push({
-          id: `${x}-${y}`,
-          source: `stress-${recentNodeId.toString()}`,
-          target: `stress-${nodeId.toString()}`,
-          sourceHandle: "out",
-          targetHandle: "in",
-          data: "",
+        Array.from({ length: 3 }).forEach((_, i) => {
+          edges.push({
+            id: `${x}-${y}`,
+            source: `stress-${recentNodeId.toString()}`,
+            target: `stress-${nodeId.toString()}`,
+            sourceHandle: `out${i + 1}`,
+            targetHandle: "in",
+            data: "",
+          });
         });
       }
 

@@ -31,7 +31,6 @@ export const PotraceBtn: FC = () => {
         },
         {
           onSuccess: (svg) => {
-            console.log("svg:", svg);
             useLayers.getState().updateLayer(layer.id, {
               ...layer,
               content: svg,

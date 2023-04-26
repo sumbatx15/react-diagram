@@ -6,6 +6,7 @@ import React, { createContext, useContext } from "react";
 import { Layer } from "../Layer/Layer";
 import { Handle } from "./handle";
 import { useToggle } from "react-use";
+import { Placement } from "./utils";
 interface NodeContextType {
   nodeId: string;
 }
@@ -50,7 +51,8 @@ export const DiagramNodeFC: FC<{ nodeId: string }> = React.memo(
               style={{
                 borderRadius: "4px",
                 position: "relative",
-                background: 'gray'
+                background: "#070708",
+                padding: "16px",
               }}
               pos="relative"
               bg="gray.700"
@@ -64,9 +66,9 @@ export const DiagramNodeFC: FC<{ nodeId: string }> = React.memo(
                 top="50%"
                 transform="translate(-50%, -50%)"
               >
-                <Handle id="in" type="target" />
+                <Handle id="in" type="target" placement="left" />
               </Box>
-              <Text onClick={toggle}>{nodeId}</Text>
+              <Text /* onClick={toggle} */>{nodeId}</Text>
               {show && (
                 <Box
                   pos="absolute"
@@ -74,7 +76,9 @@ export const DiagramNodeFC: FC<{ nodeId: string }> = React.memo(
                   top="50%"
                   transform="translate(+50%, -50%)"
                 >
-                  <Handle id="out" type="source" />
+                  <Handle id="out1" type="source" placement="right" />
+                  <Handle id="out2" type="source" placement="right" />
+                  <Handle id="out3" type="source" placement="right" />
                 </Box>
               )}
             </div>

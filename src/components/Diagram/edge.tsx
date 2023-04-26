@@ -6,13 +6,8 @@ import {
 } from "@react-spring/web";
 import { ComponentProps, FC, memo, ReactNode } from "react";
 import { Edge as EdgeType, useDiagram } from "../../store/diagramStore";
-import {
-  createEdgePosition,
-  createZeroStartEndPosition,
-  createZeroVector,
-  Vector,
-} from "../../store/utils";
-import { getBezierPath, Position } from "./utils";
+import { createEdgePosition, Vector } from "../../store/utils";
+import { getBezierPath, PlacementEnum } from "./utils";
 
 // create type that takes a type and returns the same type but the values are union of the same type and SpringValue
 type Primitive = string | number | boolean | null | undefined;
@@ -63,7 +58,6 @@ export const Edge: FC<
 > = ({ d, animated: _animate = false, style, ...props }) => {
   return (
     <animated.path
-      onClick={console.log}
       style={{
         zIndex: 100,
         pointerEvents: "auto",
@@ -111,32 +105,42 @@ export const StatefulEdge: FC<{ edge: EdgeType }> = memo(({ edge }) => {
   }));
 
   useDiagram((state) => {
-    const start = state.getHandleCenter(edge.source, edge.sourceHandle);
-    const end = state.getHandleCenter(edge.target, edge.targetHandle);
+    const source = state.getHandleCenter(edge.source, edge.sourceHandle);
+    const target = state.getHandleCenter(edge.target, edge.targetHandle);
 
-    if (!start || !end) {
+    const sourcePlacement = state.getHandlePlacement(
+      edge.source,
+      edge.sourceHandle
+    );
+
+    const targetPlacement = state.getHandlePlacement(
+      edge.target,
+      edge.targetHandle
+    );
+
+    if (!source || !target) {
       if (!styles.visible.get()) return;
       return api.set({ visible: false });
     }
 
     if (
-      start.x !== styles.start.get()[0] ||
-      start.y !== styles.start.get()[1] ||
-      end.x !== styles.end.get()[0] ||
-      end.y !== styles.end.get()[1] ||
+      source.x !== styles.start.get()[0] ||
+      source.y !== styles.start.get()[1] ||
+      target.x !== styles.end.get()[0] ||
+      target.y !== styles.end.get()[1] ||
       !styles.visible.get()
     ) {
       api.set({
-        start: [start.x, start.y],
-        end: [end.x, end.y],
+        start: [source.x, source.y],
+        end: [target.x, target.y],
         visible: true,
         d: getBezierPath({
-          sourceX: start.x,
-          sourceY: start.y,
-          targetX: end.x,
-          targetY: end.y,
-          sourcePosition: Position.Right,
-          targetPosition: Position.Left,
+          sourceX: source.x,
+          sourceY: source.y,
+          targetX: target.x,
+          targetY: target.y,
+          sourcePlacement,
+          targetPlacement,
           curvature: 0.25,
         })[0],
       });
@@ -145,7 +149,6 @@ export const StatefulEdge: FC<{ edge: EdgeType }> = memo(({ edge }) => {
 
   return (
     <animated.path
-      onClick={console.log}
       style={{
         zIndex: 100,
         pointerEvents: "auto",

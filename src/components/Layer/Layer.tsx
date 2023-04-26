@@ -65,6 +65,7 @@ export const Layer: FC<LayerProps> = ({ id, children }) => {
         pinching,
         ctrlKey,
         shiftKey,
+        tap,
       }) => {
         if (canceled || pinching || ctrlKey || shiftKey) return;
         if (
@@ -85,23 +86,22 @@ export const Layer: FC<LayerProps> = ({ id, children }) => {
         api.set({
           x: newX,
           y: newY,
-          zIndex: 1,
         });
         const hasSelectedNodes =
           useDiagram.getState().getSelectedNodeIds().length > 0;
-        if (hasSelectedNodes) {
+        if (
+          hasSelectedNodes &&
+          useDiagram.getState().getSelectedNodeIds().includes(id)
+        ) {
           useDiagram
             .getState()
             .updateSelectedNodesPositions({ x: deltaX, y: deltaY });
         } else {
+          useDiagram.getState().setSelectedNodes([id]);
           useDiagram.getState().updateNodePosition(id, { x: newX, y: newY });
         }
       },
-      onDragEnd: () => {
-        api.set({
-          zIndex: 0,
-        });
-      },
+      onDragEnd: ({ tap }) => {},
     },
     {
       target: ref,
@@ -127,6 +127,7 @@ export const Layer: FC<LayerProps> = ({ id, children }) => {
         outline: styles.isSelected.to((isSelected) =>
           isSelected ? "2px solid " : "none"
         ),
+        zIndex: styles.isSelected.to((isSelected) => (isSelected ? 1 : 0)),
       }}
     >
       {children}

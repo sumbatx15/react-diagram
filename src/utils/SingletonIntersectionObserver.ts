@@ -15,7 +15,6 @@ class SingletonIntersectionObserver {
     entries.forEach((entry) => {
       const target = entry.target as CustomHTMLElement;
       observer.disconnect();
-      console.log("entry.boundingClientRect:", entry.boundingClientRect);
       target._resolver &&
         target._resolver.forEach((resolve) =>
           resolve(entry.boundingClientRect)

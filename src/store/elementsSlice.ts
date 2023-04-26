@@ -1,5 +1,6 @@
-import { omit } from "lodash-es";
+import { omit, set as _set } from "lodash-es";
 import { StoreSlice } from ".";
+import { Placement } from "../components/Diagram/utils";
 import {
   createZeroVector,
   DOMRectLike,
@@ -12,6 +13,20 @@ export type ElementsSlice = {
   nodeUnscaledRects: Record<string, DOMRectLike>;
   handleUnscaledRects: Record<string, Record<string, DOMRectLike>>;
   handleDimensions: Record<string, Record<string, HandleDimensions>>;
+  handlePlacements: Record<string, Record<string, Placement>>;
+
+  getHandleDimensions: (nodeId: string, handleId: string) => HandleDimensions;
+
+  setHandlePlacement: (
+    nodeId: string,
+    handleId: string,
+    placement: Placement
+  ) => void;
+
+  getHandlePlacement: (
+    nodeId: string,
+    handleId: string
+  ) => Placement | undefined;
 
   getHandleCenter: (nodeId: string, handleId: string) => Vector | undefined;
   clearHandleDimensions: (nodeId: string, handleId: string) => void;
@@ -24,10 +39,29 @@ export const createElementsSlice: StoreSlice<ElementsSlice> = (set, get) => {
     nodeUnscaledRects: {},
     handleUnscaledRects: {},
     handleDimensions: {},
+    handlePlacements: {},
+
+    setHandlePlacement: (nodeId, handleId, placement) => {
+      set((state) => ({
+        handlePlacements: _set(
+          state.handlePlacements,
+          [nodeId, handleId],
+          placement
+        ),
+      }));
+    },
+
+    getHandlePlacement: (nodeId, handleId) => {
+      return get().handlePlacements[nodeId]?.[handleId];
+    },
+
+    getHandleDimensions: (nodeId, handleId) => {
+      return get().handleDimensions[nodeId]?.[handleId];
+    },
 
     getHandleCenter: (nodeId, handleId) => {
       const handleDimensions = get().handleDimensions[nodeId]?.[handleId];
-      const position = get().getNodePosition(nodeId) || createZeroVector();
+      const position = get().getNodePosition(nodeId);
       if (!handleDimensions || !position) return;
 
       return getHandleCenter({

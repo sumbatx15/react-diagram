@@ -8,18 +8,25 @@ import { createEdge } from "../../store/utils";
 import { createHandleElementId } from "../../utils";
 import { useNode, useNodeContext } from "./DiagramNode";
 import { resizeObserver } from "../../utils/resizeObserver";
+import { Placement } from "./utils";
 
 interface HandleProps {
   id: string;
   type: "target" | "source";
+  placement: Placement;
 }
 
-export const Handle: FC<HandleProps> = ({ id, type }) => {
+export const Handle: FC<HandleProps> = ({ id, type, placement }) => {
   const ref = useRef<HTMLDivElement>(null);
   const { nodeId } = useNodeContext();
 
   useLayoutEffect(() => {
+    useDiagram.getState().setHandlePlacement(nodeId, id, placement);
+  }, [placement]);
+
+  useLayoutEffect(() => {
     resizeObserver.observe(ref.current!);
+
     return () => {
       resizeObserver.unobserve(ref.current!);
       useDiagram.getState().clearHandleDimensions(nodeId, id);
@@ -97,7 +104,6 @@ export const Handle: FC<HandleProps> = ({ id, type }) => {
           to.dataset.type !== type
         ) {
           const [source, target] = type === "source" ? [from, to] : [to, from];
-          console.log("source:", source.dataset.type);
           useDiagram.getState().addEdge(
             createEdge({
               source: source.dataset.nodeId as string,

@@ -2,7 +2,7 @@ import { Box, HStack } from "@chakra-ui/react";
 import useResizeObserver from "@react-hook/resize-observer";
 import { animated, useSpring } from "@react-spring/web";
 import { useGesture } from "@use-gesture/react";
-import { clamp } from "lodash-es";
+import { clamp, memoize } from "lodash-es";
 import { FC, useRef, useState } from "react";
 import {
   createNode,
@@ -42,7 +42,7 @@ export const Diagram: FC = () => {
   };
 
   const addMore = () => {
-    const { edges, nodes } = createNodesAndEdges(15, 25);
+    const { edges, nodes } = createNodesAndEdges(10, 10);
     setNodes(nodes);
     setEdges(edges);
     setTimeout(() => {
@@ -132,22 +132,24 @@ export const Diagram: FC = () => {
         });
         updatePosition({ x: newX, y: newY });
       },
-      onDragEnd: () => {
-        console.log("onDragEnd:");
-        const nodeIds = getNodesInsideRect();
-        // if (useDiagram.getState().viewport.showSelectionBox) {
-        useDiagram.getState().setSelectedNodes(nodeIds);
-        // }
-        useDiagram.setState((state) => ({
-          viewport: {
-            ...state.viewport,
-            showSelectionBox: false,
-            selectionBoxPosition: {
-              start: { x: 0, y: 0 },
-              end: { x: 0, y: 0 },
+      onDragEnd: ({ memo, tap }) => {
+        if (tap) {
+          useDiagram.getState().setSelectedNodes([]);
+        }
+        if (useDiagram.getState().viewport.showSelectionBox) {
+          const nodeIds = getNodesInsideRect();
+          useDiagram.getState().setSelectedNodes(nodeIds);
+          useDiagram.setState((state) => ({
+            viewport: {
+              ...state.viewport,
+              showSelectionBox: false,
+              selectionBoxPosition: {
+                start: { x: 0, y: 0 },
+                end: { x: 0, y: 0 },
+              },
             },
-          },
-        }));
+          }));
+        }
       },
       // now we need to create onWheel event the will zoom in and out on the point where the mouse is
       // the onWheel event is attached to the containerRef but we are going to scale the paneRef
@@ -187,7 +189,6 @@ export const Diagram: FC = () => {
         const viewport = useDiagram.getState().viewport;
         const prevScale = styles.scale.get();
         const newScale = clamp(prevScale + d1, 0.1, 5);
-        console.log("newScale:", newScale);
 
         // Calculate the offset of the viewport
         const offsetX = -ox / d1 + styles.x.get();
@@ -226,6 +227,9 @@ export const Diagram: FC = () => {
           buttons: [1, 4],
         },
       },
+      pinch: {
+        pinchOnWheel: false,
+      },
       eventOptions: {
         passive: false,
       },
@@ -238,7 +242,7 @@ export const Diagram: FC = () => {
     <Box
       w="100vw"
       h="100vh"
-      bg="gray.400"
+      bg="gray.900"
       userSelect="none"
       overflow="hidden"
       style={{ touchAction: "none" }}
