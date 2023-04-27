@@ -42,7 +42,7 @@ export const useNodeData = <T,>() => {
   return [data, setter] as [T, (data: T) => void];
 };
 
-export const useNodePositoin = () => {
+export const useNodePosition = () => {
   const { nodeId } = useNodeContext();
   const position = useDiagram((state) => state.nodePositions[nodeId]);
   const setter = useMemo(

@@ -3,6 +3,7 @@ import { useGesture } from "@use-gesture/react";
 import { FC, useLayoutEffect, useRef } from "react";
 import { useDiagram } from "../../store/diagramStore";
 import { resizeObserver } from "../../utils/resizeObserver";
+import { useNodePosition, useNodeState } from "../Diagram/WrappedNode";
 
 export interface LayerProps {
   id: string;
@@ -15,41 +16,15 @@ export interface NodeCmpProps {
 
 export const Draggable: FC<LayerProps> = ({ id, children }) => {
   const ref = useRef<HTMLElement>(null);
-  console.log("Draggable id:", id);
+  const [position] = useNodePosition();
+  const [state] = useNodeState();
+
   useLayoutEffect(() => {
     resizeObserver.observe(ref.current!);
     return () => {
       resizeObserver.unobserve(ref.current!);
     };
   }, []);
-
-  const [styles, api] = useSpring(() => ({
-    x: useDiagram.getState().getNode(id)?.position.x || 0,
-    y: useDiagram.getState().getNode(id)?.position.y || 0,
-    zIndex: 0,
-    isSelected: false,
-  }));
-
-  useDiagram((state) => {
-    const position = state.getNodePosition(id);
-    if (!position) return;
-    const isSelected =
-      state.getNodeState(id)?.selected ||
-      (state.viewport.showSelectionBox &&
-        state.viewport.getNodesInSelectionBox().includes(id));
-
-    if (
-      position.x !== styles.x.get() ||
-      position.y !== styles.y.get() ||
-      isSelected !== styles.isSelected.get()
-    ) {
-      api.set({
-        x: position.x,
-        y: position.y,
-        isSelected,
-      });
-    }
-  });
 
   useGesture(
     {
@@ -80,12 +55,8 @@ export const Draggable: FC<LayerProps> = ({ id, children }) => {
         const deltaX = x / scale;
         const deltaY = y / scale;
 
-        const newX = styles.x.get() + deltaX;
-        const newY = styles.y.get() + deltaY;
-        api.set({
-          x: newX,
-          y: newY,
-        });
+        const newX = position.x + deltaX;
+        const newY = position.y + deltaY;
         const hasSelectedNodes =
           useDiagram.getState().getSelectedNodeIds().length > 0;
         if (
@@ -111,7 +82,7 @@ export const Draggable: FC<LayerProps> = ({ id, children }) => {
   );
 
   return (
-    <animated.div
+    <div
       //@ts-ignore
       ref={ref}
       className="layer"
@@ -119,17 +90,16 @@ export const Draggable: FC<LayerProps> = ({ id, children }) => {
       data-id={id}
       style={{
         width: "",
-        ...styles,
         touchAction: "none",
         userSelect: "none",
         position: "absolute",
-        outline: styles.isSelected.to((isSelected) =>
-          isSelected ? "2px solid " : "none"
-        ),
-        zIndex: styles.isSelected.to((isSelected) => (isSelected ? 1 : 0)),
+        willChange: "transform",
+        outline: state.selected ? "2px solid " : "none",
+        zIndex: state.selected ? 1 : 0,
+        transform: `translate(${position.x}px, ${position.y}px)`,
       }}
     >
       {children}
-    </animated.div>
+    </div>
   );
 };

@@ -38,6 +38,13 @@ export type { StartEndPosition as EdgePosition };
 export type { DiagramNode };
 
 export const useDiagram = createDiagramStore();
+// useDiagram.subscribe(
+//   (state) => {},
+//   (state, prev) => {},
+//   { equalityFn(a, b) {
+
+//   } }
+// );
 
 // @ts-ignore
 window.useDiagram = useDiagram;

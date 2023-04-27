@@ -22,7 +22,7 @@ interface EdgeProps {
   animated?: boolean;
 }
 
-const getCubicBezierPathData = (start: Vector, end: Vector): string => {
+export const getCubicBezierPathData = (start: Vector, end: Vector): string => {
   const midPoint = {
     x: (start.x + end.x) / 2,
     y: start.y,

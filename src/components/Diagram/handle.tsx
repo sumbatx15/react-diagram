@@ -123,21 +123,13 @@ export const Handle: FC<HandleProps> = ({ id, type, placement }) => {
     }
   );
   return (
-    <Circle
-      cursor="crosshair"
-      className="handle"
+    <div
       ref={ref}
-      zIndex="100"
-      size="16px"
-      bg="white"
-      pos="relative"
+      className={`handle ${placement}`}
       data-element-type="handle"
       data-id={id}
       data-node-id={nodeId}
       data-type={type}
-      style={{
-        touchAction: "none",
-      }}
     >
       {/* <AbsoluteCenter data-id={id} data-node-id={nodeId} data-type={type}>
         <Circle
@@ -150,6 +142,6 @@ export const Handle: FC<HandleProps> = ({ id, type, placement }) => {
           // border="1px dashed gray"
         />
       </AbsoluteCenter> */}
-    </Circle>
+    </div>
   );
 };

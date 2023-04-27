@@ -4,3 +4,30 @@ body {
   height: 100vh;
   overflow: hidden;
 }
+.node {
+  border-radius: 4px;
+  position: relative;
+  background: #070708;
+  padding: 16px;
+}
+
+.handle {
+  position: absolute;
+  cursor: crosshair;
+  z-index: 100;
+  width: 16px;
+  height: 16px;
+  touch-action: none;
+  background: white;
+  border-radius: 50%;
+}
+.handle.left {
+  left: 0px;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+.handle.right {
+  right: 0px;
+  top: 50%;
+  transform: translate(50%, -50%);
+}
