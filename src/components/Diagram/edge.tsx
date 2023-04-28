@@ -5,9 +5,10 @@ import {
   useSpring,
 } from "@react-spring/web";
 import { ComponentProps, FC, memo, ReactNode } from "react";
-import { DiagramEdge as EdgeType, useDiagram } from "../../store/diagramStore";
+import { DiagramEdge as EdgeType } from "../../store/diagramStore";
 import { createEdgePosition, Vector } from "../../store/utils";
 import { getBezierPath, PlacementEnum } from "./utils";
+import { useGetDiagramStore } from "./WrappedDiagram";
 
 // create type that takes a type and returns the same type but the values are union of the same type and SpringValue
 type Primitive = string | number | boolean | null | undefined;
@@ -33,6 +34,7 @@ export const getCubicBezierPathData = (start: Vector, end: Vector): string => {
 export const EdgeContainer: FC<
   { children?: ReactNode } & React.SVGProps<SVGSVGElement>
 > = ({ children, ...props }) => {
+  const useDiagram = useGetDiagramStore();
   const edges = useDiagram((state) => state.edges);
 
   return (
@@ -96,6 +98,8 @@ export const Edge: FC<
 };
 
 export const StatefulEdge: FC<{ edge: EdgeType }> = memo(({ edge }) => {
+  const useDiagram = useGetDiagramStore();
+
   const { start, end } = createEdgePosition(useDiagram.getState(), edge);
   const [styles, api] = useSpring(() => ({
     start: [start.x, start.y],
@@ -177,6 +181,7 @@ export const StatefulEdge: FC<{ edge: EdgeType }> = memo(({ edge }) => {
 });
 
 export const DraggedEdge: FC = () => {
+  const useDiagram = useGetDiagramStore();
   const isVisible = useDiagram((state) => state.isDraggedEdgeVisible);
 
   const [styles, api] = useSpring(() => ({
@@ -186,8 +191,8 @@ export const DraggedEdge: FC = () => {
   }));
 
   useDiagram((state) => {
-    if (!state.draggedEdge) return;
-    const { start, end } = state.draggedEdge;
+    if (!state.draggedEdgePosition) return;
+    const { start, end } = state.draggedEdgePosition;
 
     if (
       start.x !== styles.start.get()[0] ||

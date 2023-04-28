@@ -63,7 +63,7 @@ export const createViewportSlice: StoreSlice<ViewportSlice> = (set, get) => ({
       }));
     },
     getNodesInSelectionBox: () => {
-      return getNodesInsideRect();
+      return getNodesInsideRect(get());
     },
   },
 });

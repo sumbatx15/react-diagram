@@ -1,8 +1,12 @@
 import { animated, useSpring } from "@react-spring/web";
 import { useGesture } from "@use-gesture/react";
 import { FC, useLayoutEffect, useRef } from "react";
-import { useDiagram } from "../../store/diagramStore";
+import { intersectionObserver } from "../../utils/intersectionObserver";
 import { resizeObserver } from "../../utils/resizeObserver";
+import {
+  useDiagramContext,
+  useGetDiagramStore,
+} from "../Diagram/WrappedDiagram";
 
 export interface LayerProps {
   id: string;
@@ -15,13 +19,17 @@ export interface NodeCmpProps {
 
 export const Draggable: FC<LayerProps> = ({ id, children }) => {
   const ref = useRef<HTMLElement>(null);
-  console.log("Draggable id:", id);
   useLayoutEffect(() => {
+    intersectionObserver.observe(ref.current!);
     resizeObserver.observe(ref.current!);
     return () => {
       resizeObserver.unobserve(ref.current!);
+      intersectionObserver.unobserve(ref.current!);
     };
   }, []);
+
+  const { diagramId } = useDiagramContext();
+  const useDiagram = useGetDiagramStore();
 
   const [styles, api] = useSpring(() => ({
     x: useDiagram.getState().getNode(id)?.position.x || 0,
@@ -115,6 +123,7 @@ export const Draggable: FC<LayerProps> = ({ id, children }) => {
       //@ts-ignore
       ref={ref}
       className="layer"
+      data-diagram-id={diagramId}
       data-element-type="node"
       data-id={id}
       style={{

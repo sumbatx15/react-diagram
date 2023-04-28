@@ -1,8 +1,9 @@
 import { animated, useSpring } from "@react-spring/web";
 import { useGesture } from "@use-gesture/react";
 import { FC, useLayoutEffect, useRef } from "react";
-import { useDiagram } from "../../store/diagramStore";
 import { resizeObserver } from "../../utils/resizeObserver";
+import { useGetDiagramStore } from "../Diagram/WrappedDiagram";
+
 import { useNodePosition, useNodeState } from "../Diagram/WrappedNode";
 
 export interface LayerProps {
@@ -18,6 +19,8 @@ export const Draggable: FC<LayerProps> = ({ id, children }) => {
   const ref = useRef<HTMLElement>(null);
   const [position] = useNodePosition();
   const [state] = useNodeState();
+  const useDiagram = useGetDiagramStore();
+
 
   useLayoutEffect(() => {
     resizeObserver.observe(ref.current!);

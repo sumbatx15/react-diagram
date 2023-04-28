@@ -1,12 +1,24 @@
 import { animated as a, useSpring } from "@react-spring/web";
-import { memo } from "react";
-import { useDiagram } from "../../store/diagramStore";
+import { memo, useLayoutEffect, useRef } from "react";
 import { createEdgePosition } from "../../store/utils";
 import { EdgeFC } from "../../types";
+import { intersectionObserver } from "../../utils/intersectionObserver";
 import { getCubicBezierPathData } from "../Diagram/edge";
 import { getBezierPath } from "../Diagram/utils";
+import { useGetDiagramStore } from "../Diagram/WrappedDiagram";
 
 export const DefaultEdge: EdgeFC = memo((edge) => {
+  const ref = useRef<SVGGElement>(null);
+  const useDiagram = useGetDiagramStore();
+
+  // useLayoutEffect(() => {
+  //   console.log('ref.current:', ref.current)
+  //   intersectionObserver.observe(ref.current!);
+  //   return () => {
+  //     intersectionObserver.unobserve(ref.current!);
+  //   };
+  // }, []);
+
   const { source, sourceHandle, target, targetHandle, animated } = edge;
   const { start, end } = createEdgePosition(useDiagram.getState(), edge);
   const [styles, api] = useSpring(() => ({
@@ -52,32 +64,61 @@ export const DefaultEdge: EdgeFC = memo((edge) => {
   });
 
   return (
-    <a.path
-      style={{
-        zIndex: 100,
-        pointerEvents: "auto",
-        touchAction: "none",
-        display: styles.visible.to((v) => (v ? "initial" : "none")),
-      }}
-      d={styles.d}
-      stroke="black"
-      strokeWidth="1"
-      strokeLinecap="round"
-      strokeDasharray={animated ? "10 6" : ""}
-      strokeDashoffset={animated ? "0" : ""}
-      fill="none"
-    >
-      {animated && (
-        <animate
-          attributeName="stroke-dashoffset"
-          attributeType="XML"
-          from="0"
-          to="-16"
-          dur="0.45s"
-          repeatCount="indefinite"
-          begin="0s"
-        />
-      )}
-    </a.path>
+    <g ref={ref}>
+      <a.path
+        style={{
+          zIndex: 100,
+          cursor: "pointer",
+          pointerEvents: "auto",
+          touchAction: "none",
+          opacity: 0,
+          display: styles.visible.to((v) => (v ? "initial" : "none")),
+        }}
+        d={styles.d}
+        stroke="black"
+        strokeWidth="16"
+        strokeLinecap="round"
+        fill="none"
+      >
+        {animated && (
+          <animate
+            attributeName="stroke-dashoffset"
+            attributeType="XML"
+            from="0"
+            to="-16"
+            dur="0.45s"
+            repeatCount="indefinite"
+            begin="0s"
+          />
+        )}
+      </a.path>
+      <a.path
+        style={{
+          zIndex: 100,
+          pointerEvents: "auto",
+          touchAction: "none",
+          display: styles.visible.to((v) => (v ? "initial" : "none")),
+        }}
+        d={styles.d}
+        stroke="black"
+        strokeWidth="1"
+        strokeLinecap="round"
+        strokeDasharray={animated ? "10 6" : ""}
+        strokeDashoffset={animated ? "0" : ""}
+        fill="none"
+      >
+        {animated && (
+          <animate
+            attributeName="stroke-dashoffset"
+            attributeType="XML"
+            from="0"
+            to="-16"
+            dur="0.45s"
+            repeatCount="indefinite"
+            begin="0s"
+          />
+        )}
+      </a.path>
+    </g>
   );
 });

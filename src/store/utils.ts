@@ -1,11 +1,12 @@
 import { SpringValues } from "@react-spring/web";
 import { MutableRefObject } from "react";
 import { StoreState } from ".";
+import { useGetDiagramStore } from "../components/Diagram/WrappedDiagram";
 import {
   calcBoxXY,
   calculateWidthAndHeight,
 } from "../components/Selection/Selection";
-import { DiagramEdge, useDiagram } from "./diagramStore";
+import { DiagramEdge } from "./diagramStore";
 
 export const createEdge = (edge: Omit<DiagramEdge, "id">) => {
   return {
@@ -191,8 +192,8 @@ export const getParentNodeElement = (handleElement: HTMLElement) => {
   return handleElement.closest('[data-type="node"]') as HTMLElement;
 };
 
-export const getNodesInsideRect = () => {
-  const { start, end } = useDiagram.getState().viewport.selectionBoxPosition;
+export const getNodesInsideRect = (diagramState: StoreState) => {
+  const { start, end } = diagramState.viewport.selectionBoxPosition;
   const { x, y } = calcBoxXY(start, end);
   const { width, height } = calculateWidthAndHeight(start, end);
 
@@ -205,9 +206,9 @@ export const getNodesInsideRect = () => {
 
   const threshold = 0.2; // 20%
 
-  return useDiagram.getState().nodeIds.filter((id) => {
-    const position = useDiagram.getState().nodePositions[id];
-    const rect = useDiagram.getState().nodeUnscaledRects[id];
+  return diagramState.nodeIds.filter((id) => {
+    const position = diagramState.nodePositions[id];
+    const rect = diagramState.nodeUnscaledRects[id];
     if (!position || !rect) return false;
 
     const nodeBox = {

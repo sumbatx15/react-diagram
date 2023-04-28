@@ -1,5 +1,6 @@
 import { merge, set } from "lodash-es";
-import { useDiagram } from "../store/diagramStore";
+import { useGetDiagramStore } from "../components/Diagram/WrappedDiagram";
+import { useDiagrams } from "../store";
 import { ElementsSlice } from "../store/elementsSlice";
 import {
   DOMRectLike,
@@ -11,6 +12,12 @@ import {
 
 export const resizeObserver = new ResizeObserver(async (entries) => {
   console.time("generating rects");
+  const diagramId =
+    entries
+      .find((entry) => entry.target.hasAttribute("data-diagram-id"))
+      ?.target.getAttribute("data-diagram-id") || "";
+  const useDiagram = useDiagrams.getState().diagrams[diagramId];
+
   const state = useDiagram.getState();
   const scale = state.viewport.scale;
 

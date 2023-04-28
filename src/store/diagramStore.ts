@@ -1,7 +1,7 @@
 import uniqid from "uniqid";
-import { StoreApi, UseBoundStore } from "zustand";
-import { createDiagramStore } from ".";
-import { DiagramNode, StartEndPosition, NodeState, Vector } from "./utils";
+import { useGetDiagramStore } from "../components/Diagram/WrappedDiagram";
+import { DiagramNode, NodeState, StartEndPosition, Vector } from "./utils";
+import { ViewportSlice } from "./viewportSlice";
 
 const createVector = (
   x: number = Math.random() * 500,
@@ -20,16 +20,18 @@ export const createNode = (): DiagramNode => ({
   position: createVector(),
   data: createNodeData(),
   state: createNodeState(),
-  type: "custom",
+  type: "default",
 });
 
-export interface DiagramEdge {
-  id: string;
-  type?: string;
+export interface IEdge {
   source: string;
   target: string;
   sourceHandle: string;
   targetHandle: string;
+}
+export interface DiagramEdge extends IEdge {
+  id: string;
+  type?: string;
   data: unknown;
   animated?: boolean;
 }
@@ -37,20 +39,11 @@ export interface DiagramEdge {
 export type { StartEndPosition as EdgePosition };
 export type { DiagramNode };
 
-export const useDiagram = createDiagramStore();
-// useDiagram.subscribe(
-//   (state) => {},
-//   (state, prev) => {},
-//   { equalityFn(a, b) {
-
-//   } }
-// );
-
-// @ts-ignore
-window.useDiagram = useDiagram;
-
-export const getInDiagramPosition = ({ x, y }: Vector) => {
-  const { position, scale } = useDiagram.getState().viewport;
+export const getInDiagramPosition = (
+  { x, y }: Vector,
+  viewport: Pick<ViewportSlice["viewport"], "position" | "scale">
+) => {
+  const { position, scale } = viewport;
   return {
     x: (x - position.x) / scale,
     y: (y - position.y) / scale,

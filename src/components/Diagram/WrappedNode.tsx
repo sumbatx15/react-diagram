@@ -1,10 +1,11 @@
 import { FC, useMemo } from "react";
-import { DiagramNode, useDiagram } from "../../store/diagramStore";
+import { DiagramNode } from "../../store/diagramStore";
 
 import React, { createContext, useContext } from "react";
 import { NodeFC } from "../../types";
 import { Draggable } from "../Draggable/Draggable";
 import { NodeState, Vector } from "../../store/utils";
+import { useGetDiagramStore } from "./WrappedDiagram";
 interface NodeContextType {
   nodeId: string;
 }
@@ -26,6 +27,7 @@ const NodeContextProvider: React.FC<{
 
 export const useNode = <T,>(selector?: (node: DiagramNode) => T) => {
   const { nodeId } = useNodeContext();
+  const useDiagram = useGetDiagramStore();
   return useDiagram((state) =>
     selector ? selector(state.getNode(nodeId)!) : state.getNode(nodeId)
   ) as T extends unknown ? DiagramNode : T;
@@ -33,6 +35,8 @@ export const useNode = <T,>(selector?: (node: DiagramNode) => T) => {
 
 export const useNodeData = <T,>() => {
   const { nodeId } = useNodeContext();
+
+  const useDiagram = useGetDiagramStore();
   const data = useDiagram((state) => state.nodeData[nodeId]) as T;
   const setter = useMemo(
     () => useDiagram.getState().updateNodeData.bind(null, nodeId),
@@ -44,6 +48,8 @@ export const useNodeData = <T,>() => {
 
 export const useNodePosition = () => {
   const { nodeId } = useNodeContext();
+  const useDiagram = useGetDiagramStore();
+  
   const position = useDiagram((state) => state.nodePositions[nodeId]);
   const setter = useMemo(
     () => useDiagram.getState().updateNodePosition.bind(null, nodeId),
@@ -55,6 +61,8 @@ export const useNodePosition = () => {
 
 export const useNodeState = () => {
   const { nodeId } = useNodeContext();
+  const useDiagram = useGetDiagramStore();
+
   const nodeState = useDiagram((state) => state.nodeStates[nodeId]);
   const setter = useMemo(
     () => useDiagram.getState().updateNodeState.bind(null, nodeId),

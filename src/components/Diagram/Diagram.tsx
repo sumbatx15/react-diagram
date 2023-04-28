@@ -4,11 +4,7 @@ import { animated, useSpring } from "@react-spring/web";
 import { useGesture } from "@use-gesture/react";
 import { clamp } from "lodash-es";
 import { FC, useRef, useState } from "react";
-import {
-  createNode,
-  getInDiagramPosition,
-  useDiagram,
-} from "../../store/diagramStore";
+import { createNode, getInDiagramPosition } from "../../store/diagramStore";
 import { getNodesInsideRect } from "../../store/utils";
 import { EdgeTypes, NodeTypes } from "../../types";
 import { FullscreenBtn } from "../Editor/FullscreenBtn";
@@ -18,6 +14,7 @@ import { createNodesAndEdges } from "./utils";
 import { DefaultNode } from "../Node/DefaultNode";
 import { WrappedNode } from "./WrappedNode";
 import { EdgeRenderer } from "../EdgeRenderer/EdgeRenderer";
+import { useGetDiagramStore } from "./WrappedDiagram";
 export interface DiagramProps {
   nodeTypes?: NodeTypes;
   edgeTypes?: EdgeTypes;
@@ -30,6 +27,7 @@ export const Diagram: FC<DiagramProps> = ({
   minZoom = 0.1,
   maxZoom = 5,
 }) => {
+  const useDiagram = useGetDiagramStore();
   const updateScale = useDiagram((state) => state.viewport.updateScale);
   const fitView = useDiagram((state) => state.fitView);
   const updatePosition = useDiagram((state) => state.viewport.updatePosition);
@@ -59,6 +57,7 @@ export const Diagram: FC<DiagramProps> = ({
 
   const addMore = () => {
     const { edges, nodes } = createNodesAndEdges(10, 10);
+    console.log("nodes:", nodes);
     setNodes(nodes);
     setEdges(edges);
     setTimeout(() => {
@@ -68,7 +67,7 @@ export const Diagram: FC<DiagramProps> = ({
 
   const containerRef = useRef<HTMLDivElement>(null);
   const paneRef = useRef<HTMLDivElement>(null);
-
+  console.log("useDiagram:", useDiagram);
   const [styles, api] = useSpring(() => ({
     x: 0,
     y: 0,
@@ -130,12 +129,21 @@ export const Diagram: FC<DiagramProps> = ({
             }));
 
             useDiagram.getState().viewport.updateSelectionBox({
-              start: getInDiagramPosition({ x: x2, y: y2 }),
-              end: getInDiagramPosition({ x: x2, y: y2 }),
+              start: getInDiagramPosition(
+                { x: x2, y: y2 },
+                useDiagram.getState().viewport
+              ),
+              end: getInDiagramPosition(
+                { x: x2, y: y2 },
+                useDiagram.getState().viewport
+              ),
             });
           } else {
             useDiagram.getState().viewport.updateSelectionBox({
-              end: getInDiagramPosition({ x: x2, y: y2 }),
+              end: getInDiagramPosition(
+                { x: x2, y: y2 },
+                useDiagram.getState().viewport
+              ),
             });
           }
           return;
@@ -153,7 +161,7 @@ export const Diagram: FC<DiagramProps> = ({
           useDiagram.getState().setSelectedNodes([]);
         }
         if (useDiagram.getState().viewport.showSelectionBox) {
-          const nodeIds = getNodesInsideRect();
+          const nodeIds = getNodesInsideRect(useDiagram.getState());
           useDiagram.getState().setSelectedNodes(nodeIds);
           useDiagram.setState((state) => ({
             viewport: {

@@ -178,12 +178,13 @@ export const createNodesSlice: StoreSlice<NodesSlice> = (set, get) => ({
   setNodes: (nodes) => {
     const nodesById = keyBy(nodes, "id");
 
-    set(() => ({
+    set({
       nodeIds: Object.keys(nodesById),
       nodePositions: mapValues(nodesById, (node) => node.position),
       nodeData: mapValues(nodesById, (node) => node.data),
       nodeStates: mapValues(nodesById, (node) => node.state),
-    }));
+      nodeTypes: mapValues(nodesById, (node) => node.type || "default"),
+    });
   },
 
   updateNodePosition: (id, position) => {

@@ -1,11 +1,11 @@
 import { Circle } from "@chakra-ui/react";
 import { useGesture } from "@use-gesture/react";
 import { FC, useLayoutEffect, useRef } from "react";
-import { useDiagram } from "../../store/diagramStore";
 import { createEdge } from "../../store/utils";
 import { resizeObserver } from "../../utils/resizeObserver";
 import { useNodeContext } from "./WrappedNode";
 import { Placement } from "./utils";
+import { useDiagramContext, useGetDiagramStore } from "./WrappedDiagram";
 
 interface HandleProps {
   id: string;
@@ -15,7 +15,9 @@ interface HandleProps {
 
 export const Handle: FC<HandleProps> = ({ id, type, placement }) => {
   const ref = useRef<HTMLDivElement>(null);
+  const { diagramId } = useDiagramContext();
   const { nodeId } = useNodeContext();
+  const useDiagram = useGetDiagramStore();
 
   useLayoutEffect(() => {
     useDiagram.getState().setHandlePlacement(nodeId, id, placement);
@@ -51,18 +53,18 @@ export const Handle: FC<HandleProps> = ({ id, type, placement }) => {
           const ys =
             (rect.top - state.viewport.position.y) / state.viewport.scale;
 
-          useDiagram.getState().updateDraggedEdge({
+          useDiagram.getState().updateDraggedEdgePosition({
             start: {
               x: xs + rect.width / 2 / state.viewport.scale,
               y: ys + rect.height / 2 / state.viewport.scale,
             },
           });
+          useDiagram.getState().setDraggedEdgeVisible(true);
         }
 
-        useDiagram.getState().setDraggedEdgeVisible(true);
         const xs = (xy[0] - state.viewport.position.x) / state.viewport.scale;
         const ys = (xy[1] - state.viewport.position.y) / state.viewport.scale;
-        useDiagram.getState().updateDraggedEdge({
+        useDiagram.getState().updateDraggedEdgePosition({
           end: {
             x: xs,
             y: ys,
@@ -80,7 +82,7 @@ export const Handle: FC<HandleProps> = ({ id, type, placement }) => {
             xs + rect.width / 2 / state.viewport.scale,
             ys + rect.height / 2 / state.viewport.scale,
           ];
-          useDiagram.getState().updateDraggedEdge({
+          useDiagram.getState().updateDraggedEdgePosition({
             end: {
               x: elementCenter[0],
               y: elementCenter[1],
@@ -101,18 +103,26 @@ export const Handle: FC<HandleProps> = ({ id, type, placement }) => {
           to.dataset.type !== type
         ) {
           const [source, target] = type === "source" ? [from, to] : [to, from];
-          useDiagram.getState().addEdge(
-            createEdge({
-              source: source.dataset.nodeId as string,
-              target: target.dataset.nodeId as string,
-              sourceHandle: source.dataset.id as string,
-              targetHandle: target.dataset.id as string,
-              data: "",
-              animated: true,
-            })
-          );
+          const onConnection = useDiagram.getState().onConnection;
+          onConnection
+            ? onConnection({
+                source: source.dataset.nodeId as string,
+                target: target.dataset.nodeId as string,
+                sourceHandle: source.dataset.id as string,
+                targetHandle: target.dataset.id as string,
+              })
+            : useDiagram.getState().addEdge(
+                createEdge({
+                  source: source.dataset.nodeId as string,
+                  target: target.dataset.nodeId as string,
+                  sourceHandle: source.dataset.id as string,
+                  targetHandle: target.dataset.id as string,
+                  data: "",
+                  animated: true,
+                })
+              );
         }
-        useDiagram.getState().setDraggedEdgeVisible(false);
+        useDiagram.getState().clearDraggedEdge();
       },
     },
     {
@@ -126,6 +136,7 @@ export const Handle: FC<HandleProps> = ({ id, type, placement }) => {
     <div
       ref={ref}
       className={`handle ${placement}`}
+      data-diagram-id={diagramId}
       data-element-type="handle"
       data-id={id}
       data-node-id={nodeId}

@@ -1,6 +1,6 @@
 import { animated, useSpring } from "@react-spring/web";
-import { useDiagram } from "../../store/diagramStore";
 import { Vector } from "../../store/utils";
+import { useGetDiagramStore } from "../Diagram/WrappedDiagram";
 
 interface SelectionBoxProps {}
 
@@ -26,6 +26,7 @@ export const SelectionBox: React.FC<SelectionBoxProps> = () => {
     height: 0,
     opacity: 0,
   }));
+  const useDiagram = useGetDiagramStore();
 
   useDiagram((state) => {
     if (!state.viewport.showSelectionBox) {

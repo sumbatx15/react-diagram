@@ -1,11 +1,13 @@
 import { animated as a, useSpring } from "@react-spring/web";
 import { memo } from "react";
-import { useDiagram } from "../../store/diagramStore";
 import { EdgeFC } from "../../types";
 import { getBezierPath } from "../Diagram/utils";
+import { useGetDiagramStore } from "../Diagram/WrappedDiagram";
 
 export const DefaultEdge: EdgeFC = memo(
   ({ source, sourceHandle, target, targetHandle, animated }) => {
+    const useDiagram = useGetDiagramStore();
+
     const path = useDiagram((state) => {
       const sourceCenter = state.getHandleCenter(source, sourceHandle);
       const targetCenter = state.getHandleCenter(target, targetHandle);

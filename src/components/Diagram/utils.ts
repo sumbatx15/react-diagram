@@ -159,7 +159,6 @@ export function createNodesAndEdges(xNodes = 10, yNodes = 10) {
         ...createNode(),
         id: `stress-${nodeId.toString()}`,
         position: { x: x * 150, y: y * 60 },
-        type: "custom",
       };
       nodes.push(node);
 

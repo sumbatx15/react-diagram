@@ -17,11 +17,11 @@ export const CustomNode: NodeFC = ({ id }) => {
       }}
     >
       <Handle id="in" type="target" placement="left" />
-      <Text /* onClick={toggle} */>CustomNode - {id}</Text>
-      <Input value={data} onInput={(e) => setData(e.target.value)} />
-      <Input value={data} onInput={(e) => setData(e.target.value)} />
-      <Text>Heloo</Text>
-      <Button>Click me </Button>
+      <p /* onClick={toggle} */>CustomNode - {id}</p>
+      <input value={data} onInput={(e) => setData(e.target.value)} />
+      <input value={data} onInput={(e) => setData(e.target.value)} />
+      <p>Heloo</p>
+      <button>Click me </button>
       <Handle id="out" type="source" placement="right" />
     </div>
   );

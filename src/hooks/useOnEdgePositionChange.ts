@@ -1,8 +1,11 @@
 import { useEffect } from "react";
-import { DiagramEdge, useDiagram } from "../store/diagramStore";
 import { shallow } from "zustand/shallow";
+import { useGetDiagramStore } from "../components/Diagram/WrappedDiagram";
+import { DiagramEdge } from "../store/diagramStore";
 
 export const useOnEdgePositionChange = (edge: DiagramEdge) => {
+  const useDiagram = useGetDiagramStore();
+
   useEffect(() => {
     const unsubscribe = useDiagram.subscribe(
       (state) => ({
