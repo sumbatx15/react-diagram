@@ -8,6 +8,13 @@ export type DraggedEdgeSlice = {
     handleId: string;
     nodeId: string;
   } | null;
+  setDraggedEdge: (
+    edge: {
+      handleType: "source" | "target";
+      handleId: string;
+      nodeId: string;
+    } | null
+  ) => void;
   draggedEdgePosition: StartEndPosition;
   updateDraggedEdgePosition: (position: Partial<StartEndPosition>) => void;
   isDraggedEdgeVisible: boolean;
@@ -20,14 +27,15 @@ export const createDraggedEdgeSlice: StoreSlice<DraggedEdgeSlice> = (
   set,
   get
 ) => ({
-  draggedEdge: {
-    handleType: "source",
-    handleId: "",
-    nodeId: "",
-  },
+  draggedEdge: null,
   draggedEdgePosition: {
     start: { x: 0, y: 0 },
     end: { x: 0, y: 0 },
+  },
+  setDraggedEdge: (edge) => {
+    set(() => ({
+      draggedEdge: edge,
+    }));
   },
   updateDraggedEdgePosition: (position) => {
     set((state) => ({

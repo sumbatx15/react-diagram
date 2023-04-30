@@ -1,3 +1,4 @@
+import { Button } from "@chakra-ui/react";
 import { animated as a, useSpring } from "@react-spring/web";
 import { memo, useLayoutEffect, useRef } from "react";
 import { createEdgePosition } from "../../store/utils";
@@ -20,11 +21,30 @@ export const DefaultEdge: EdgeFC = memo((edge) => {
   // }, []);
 
   const { source, sourceHandle, target, targetHandle, animated } = edge;
-  const { start, end } = createEdgePosition(useDiagram.getState(), edge);
+  const sourceCenter = useDiagram
+    .getState()
+    .getHandleCenter(source, sourceHandle) || { x: 0, y: 0 };
+  const targetCenter = useDiagram
+    .getState()
+    .getHandleCenter(target, targetHandle) || { x: 0, y: 0 };
+  const sourcePlacement = useDiagram
+    .getState()
+    .getHandlePlacement(source, sourceHandle);
+  const targetPlacement = useDiagram
+    .getState()
+    .getHandlePlacement(target, targetHandle);
   const [styles, api] = useSpring(() => ({
-    start: [start.x, start.y],
-    end: [end.x, end.y],
-    d: getCubicBezierPathData(start, end),
+    start: [sourceCenter.x, sourceCenter.y],
+    end: [targetCenter.x, targetCenter.y],
+    d: getBezierPath({
+      sourceX: sourceCenter.x,
+      sourceY: sourceCenter.y,
+      targetX: targetCenter.x,
+      targetY: targetCenter.y,
+      sourcePlacement,
+      targetPlacement,
+      curvature: 0.25,
+    })[0],
     visible: true,
   }));
 
@@ -64,8 +84,12 @@ export const DefaultEdge: EdgeFC = memo((edge) => {
   });
 
   return (
-    <g ref={ref}>
+    <g
+      ref={ref}
+      onClick={() => useDiagram.getState().setSelectedEdges([edge.id])}
+    >
       <a.path
+        onClick={() => useDiagram.getState().setSelectedEdges([edge.id])}
         style={{
           zIndex: 100,
           cursor: "pointer",
@@ -93,7 +117,9 @@ export const DefaultEdge: EdgeFC = memo((edge) => {
         )}
       </a.path>
       <a.path
+        onClick={() => useDiagram.getState().setSelectedEdges([edge.id])}
         style={{
+          stroke: "white",
           zIndex: 100,
           pointerEvents: "auto",
           touchAction: "none",

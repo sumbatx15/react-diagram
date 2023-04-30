@@ -41,12 +41,15 @@ export type { DiagramNode };
 
 export const getInDiagramPosition = (
   { x, y }: Vector,
-  viewport: Pick<ViewportSlice["viewport"], "position" | "scale">
+  viewport: Pick<
+    ViewportSlice["viewport"],
+    "position" | "scale" | "offsetLeft" | "offsetTop"
+  >
 ) => {
-  const { position, scale } = viewport;
+  const { position, scale, offsetLeft, offsetTop } = viewport;
   return {
-    x: (x - position.x) / scale,
-    y: (y - position.y) / scale,
+    x: (x - position.x - offsetLeft) / scale,
+    y: (y - position.y - offsetTop) / scale,
   };
 };
 

@@ -1,15 +1,22 @@
 import { FC } from "react";
-import { EdgeContainer } from "../Diagram/edge";
+import { shallow } from "zustand/shallow";
 import { EdgeTypes } from "../../types";
-import { DefaultEdge } from "../Edge/DefaultEdge";
+import { DraggedEdge, EdgeContainer } from "../Diagram/edge";
 import { useGetDiagramStore } from "../Diagram/WrappedDiagram";
+import { DefaultEdge } from "../Edge/DefaultEdge";
 
-export const EdgeRenderer: FC<{ edgeTypes: EdgeTypes }> = ({ edgeTypes }) => {
+export const ElevatedEdgeRenderer: FC<{ edgeTypes: EdgeTypes }> = ({
+  edgeTypes,
+}) => {
   const useDiagram = useGetDiagramStore();
 
-  const edges = useDiagram((state) => state.getEdgesByElevation().normal);
+  const edges = useDiagram(
+    (state) => state.getEdgesByElevation().elevated,
+    shallow
+  );
   return (
     <EdgeContainer>
+      <DraggedEdge />
       {edges.map((edge) => {
         const Component =
           edgeTypes[edge.type || ""] || edgeTypes["default"] || DefaultEdge;

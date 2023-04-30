@@ -14,29 +14,35 @@ import { createNodesAndEdges } from "./utils";
 import { DefaultNode } from "../Node/DefaultNode";
 import { WrappedNode } from "./WrappedNode";
 import { EdgeRenderer } from "../EdgeRenderer/EdgeRenderer";
-import { useGetDiagramStore } from "./WrappedDiagram";
+import { DiagramView, useGetDiagramStore } from "./WrappedDiagram";
+import { Background } from "../background";
+import { ElevatedEdgeRenderer } from "../EdgeRenderer/ElevatedEdgeRenderer";
+import { mockProject } from "../../mock/project";
+import { CustomNode } from "../Node/CustomNode";
 export interface DiagramProps {
   nodeTypes?: NodeTypes;
   edgeTypes?: EdgeTypes;
   minZoom?: number;
   maxZoom?: number;
+  id: string;
 }
 export const Diagram: FC<DiagramProps> = ({
   nodeTypes = {},
   edgeTypes = {},
   minZoom = 0.1,
   maxZoom = 5,
+  id,
 }) => {
   const useDiagram = useGetDiagramStore();
   const updateScale = useDiagram((state) => state.viewport.updateScale);
   const fitView = useDiagram((state) => state.fitView);
-  const updatePosition = useDiagram((state) => state.viewport.updatePosition);
   const nodeIds = useDiagram((state) => state.nodeIds);
   const addNode = useDiagram((state) => state.addNode);
   const setNodes = useDiagram((state) => state.setNodes);
   const setEdges = useDiagram((state) => state.setEdges);
 
   const randomizePositions = () => {
+    if (!useDiagram.getState().nodeIds.length) return;
     const positions = Object.entries(
       useDiagram.getState().nodePositions
     ).reduce((acc, [id, pos]) => {
@@ -77,7 +83,12 @@ export const Diagram: FC<DiagramProps> = ({
   useResizeObserver(containerRef, (entry) => {
     useDiagram
       .getState()
-      .viewport.updateSize(entry.contentRect.width, entry.contentRect.height);
+      .viewport.updateSize(
+        entry.contentRect.width,
+        entry.contentRect.height,
+        (entry.target as HTMLElement).offsetTop,
+        (entry.target as HTMLElement).offsetLeft
+      );
   });
 
   useDiagram((state) => {
@@ -109,17 +120,15 @@ export const Diagram: FC<DiagramProps> = ({
         shiftKey,
         first,
       }) => {
+        event.stopPropagation();
         if (canceled) return;
         if (
           (event.target as HTMLElement).classList.contains("layer") ||
           (event.target as HTMLElement).classList.contains("handle")
         )
           return cancel();
-        if (
-          ctrlKey ||
-          shiftKey ||
-          useDiagram.getState().viewport.showSelectionBox
-        ) {
+        const viewport = useDiagram.getState().viewport;
+        if (ctrlKey || shiftKey || viewport.showSelectionBox) {
           if (first) {
             useDiagram.setState((state) => ({
               viewport: {
@@ -128,22 +137,13 @@ export const Diagram: FC<DiagramProps> = ({
               },
             }));
 
-            useDiagram.getState().viewport.updateSelectionBox({
-              start: getInDiagramPosition(
-                { x: x2, y: y2 },
-                useDiagram.getState().viewport
-              ),
-              end: getInDiagramPosition(
-                { x: x2, y: y2 },
-                useDiagram.getState().viewport
-              ),
+            viewport.updateSelectionBox({
+              start: getInDiagramPosition({ x: x2, y: y2 }, viewport),
+              end: getInDiagramPosition({ x: x2, y: y2 }, viewport),
             });
           } else {
-            useDiagram.getState().viewport.updateSelectionBox({
-              end: getInDiagramPosition(
-                { x: x2, y: y2 },
-                useDiagram.getState().viewport
-              ),
+            viewport.updateSelectionBox({
+              end: getInDiagramPosition({ x: x2, y: y2 }, viewport),
             });
           }
           return;
@@ -154,11 +154,12 @@ export const Diagram: FC<DiagramProps> = ({
           x: newX,
           y: newY,
         });
-        updatePosition({ x: newX, y: newY });
+        viewport.updatePosition({ x: newX, y: newY });
       },
       onDragEnd: ({ memo, tap }) => {
         if (tap) {
           useDiagram.getState().setSelectedNodes([]);
+          useDiagram.getState().setSelectedEdges([]);
         }
         if (useDiagram.getState().viewport.showSelectionBox) {
           const nodeIds = getNodesInsideRect(useDiagram.getState());
@@ -177,7 +178,9 @@ export const Diagram: FC<DiagramProps> = ({
       },
       // now we need to create onWheel event the will zoom in and out on the point where the mouse is
       // the onWheel event is attached to the containerRef but we are going to scale the paneRef
-      onWheel: ({ event: e, delta: [, dy] }) => {
+      onWheel: ({ event: e, delta: [, dy], pinching }) => {
+        e.stopPropagation();
+        if (pinching) return;
         const scale = styles.scale.get();
         const x = styles.x.get();
         const y = styles.y.get();
@@ -208,31 +211,33 @@ export const Diagram: FC<DiagramProps> = ({
           },
         }));
       },
+
       onPinch: ({
-        offset: [d],
+        offset: [newScale],
         origin: [ox, oy],
-        da: [, da],
-        delta: [d1, a1],
+        event: e,
+        delta: [d],
       }) => {
-        const viewport = useDiagram.getState().viewport;
-        const prevScale = styles.scale.get();
-        const newScale = clamp(prevScale + d1, 0.1, 5);
+        const scale = styles.scale.get();
+        const x = styles.x.get();
+        const y = styles.y.get();
 
-        // Calculate the offset of the viewport
-        const offsetX = -ox / d1 + styles.x.get();
-        const offsetY = -oy / d1 + styles.y.get();
-        const oox = ox * prevScale;
-        const ooy = oy * prevScale;
+        const xs = (ox - x) / scale;
+        const ys = (oy - y) / scale;
 
-        const newX = oox - ((oox - styles.x.get()) * newScale) / prevScale;
-        const newY = ooy - ((ooy - styles.y.get()) * newScale) / prevScale;
-
+        // const newScale = clamp(
+        //   Math.exp(dy * -0.00125) * scale,
+        //   minZoom,
+        //   maxZoom
+        // );
+        // const newScale = clamp(scale + d, 0.1, 5);
+        const newX = ox - xs * newScale;
+        const newY = oy - ys * newScale;
         api.set({
           scale: newScale,
           x: newX,
           y: newY,
         });
-
         useDiagram.setState((state) => ({
           viewport: {
             ...state.viewport,
@@ -244,9 +249,45 @@ export const Diagram: FC<DiagramProps> = ({
           },
         }));
       },
-      onPinchEnd: ({ cancel }) => {
-        cancel();
-      },
+      // onPinch: ({
+      //   offset: [d],
+      //   origin: [ox, oy],
+      //   da: [, da],
+      //   delta: [d1, a1],
+      // }) => {
+      //   const viewport = useDiagram.getState().viewport;
+      //   const prevScale = styles.scale.get();
+      //   const newScale = clamp(prevScale + d1, 0.1, 5);
+
+      //   // Calculate the offset of the viewport
+      //   const offsetX = -ox / d1 + styles.x.get();
+      //   const offsetY = -oy / d1 + styles.y.get();
+      //   const oox = ox * prevScale;
+      //   const ooy = oy * prevScale;
+
+      //   const newX = oox - ((oox - styles.x.get()) * newScale) / prevScale;
+      //   const newY = ooy - ((ooy - styles.y.get()) * newScale) / prevScale;
+
+      //   api.set({
+      //     scale: newScale,
+      //     x: newX,
+      //     y: newY,
+      //   });
+
+      //   useDiagram.setState((state) => ({
+      //     viewport: {
+      //       ...state.viewport,
+      //       scale: newScale,
+      //       position: {
+      //         x: newX,
+      //         y: newY,
+      //       },
+      //     },
+      //   }));
+      // },
+      // onPinchEnd: ({ cancel }) => {
+      //   cancel();
+      // },
     },
     {
       target: containerRef,
@@ -257,6 +298,9 @@ export const Diagram: FC<DiagramProps> = ({
       },
       pinch: {
         pinchOnWheel: false,
+        from: () => {
+          return [styles.scale.get(), 0];
+        },
       },
       eventOptions: {
         passive: false,
@@ -265,22 +309,36 @@ export const Diagram: FC<DiagramProps> = ({
   );
 
   console.count("Diagram");
+  const [show, setShow] = useState(false);
 
   return (
     <Box
-      w="100vw"
-      h="100vh"
-      bg="gray.900"
+      w="100%"
+      h="100%"
+      bg="blackAlpha.600"
+      backdropFilter="blur(10px)"
       userSelect="none"
       overflow="hidden"
       style={{ touchAction: "none" }}
+      color="white"
       ref={containerRef}
     >
+      <Background color="gray" id={id} />
+
       <HStack zIndex={100} pos="absolute">
         <button onClick={handleAdd}>addnode</button>
         <button onClick={addMore}>add more</button>
         <button onClick={() => randomizePositions()}>randomize</button>
         <button onClick={() => fitView()}>fitView</button>
+        <button onClick={() => setShow((prev) => !prev)}>show</button>
+        <button onClick={() => console.log(useDiagram.getState().export())}>
+          export
+        </button>
+        <button
+          onClick={() => console.log(useDiagram.getState().import(mockProject))}
+        >
+          import
+        </button>
         <button>{d}</button>
         <FullscreenBtn target={containerRef} />
       </HStack>
@@ -297,9 +355,6 @@ export const Diagram: FC<DiagramProps> = ({
           // transformOrigin: styles.origin.to((x, y) => `${x}px ${y}px`),
         }}
       >
-        <EdgeContainer style={{ zIndex: 100 }}>
-          <DraggedEdge />
-        </EdgeContainer>
         <SelectionBox />
         <EdgeRenderer edgeTypes={edgeTypes} />
         {nodeIds.map((id) => {
@@ -309,7 +364,18 @@ export const Diagram: FC<DiagramProps> = ({
             DefaultNode;
           return <WrappedNode nodeId={id} key={id} Component={Component} />;
         })}
+        <ElevatedEdgeRenderer edgeTypes={edgeTypes} />
       </animated.div>
+      {show && (
+        <Box pos="absolute" inset="0" bg="blackAlpha.500" padding="100px">
+          <DiagramView
+            id="diagram-2"
+            nodeTypes={{
+              custom: CustomNode,
+            }}
+          />
+        </Box>
+      )}
     </Box>
   );
 };

@@ -6,11 +6,12 @@ import {
   StartEndPosition,
 } from "./utils";
 
-export type EventsSlice = {
+export type ConfigSlice = {
   onConnection: ((edge: IEdge) => void) | null;
 };
 
 // eslint-disable-next-line react-func/max-lines-per-function
-export const createEventsSlice: StoreSlice<EventsSlice> = (set, get) => ({
+export const createConfigSlice: StoreSlice<ConfigSlice> = (set, get) => ({
   onConnection: null,
+  elevateEdgeOnSelection: true,
 });

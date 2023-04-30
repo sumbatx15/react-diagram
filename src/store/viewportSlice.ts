@@ -10,21 +10,33 @@ import {
   getNodesInsideRect,
 } from "./utils";
 
-export type ViewportSlice = {
-  viewport: {
-    scale: number;
-    position: Vector;
-    width: number;
-    height: number;
-    updateScale: (scale: number) => void;
-    updatePosition: (position: Vector) => void;
-    updateSize: (width: number, height: number) => void;
+export type ViewportProps = {
+  scale: number;
+  position: Vector;
+  width: number;
+  height: number;
+  offsetLeft: number;
+  offsetTop: number;
+  showSelectionBox: boolean;
+  selectionBoxPosition: StartEndPosition;
+};
 
-    showSelectionBox: boolean;
-    selectionBoxPosition: StartEndPosition;
-    updateSelectionBox: (position: Partial<StartEndPosition>) => void;
-    getNodesInSelectionBox: () => string[];
-  };
+export type ViewportActions = {
+  updateScale: (scale: number) => void;
+  updatePosition: (position: Vector) => void;
+  updateSize: (
+    width: number,
+    height: number,
+    offsetLeft: number,
+    offsetTop: number
+  ) => void;
+  updateSelectionBox: (position: Partial<StartEndPosition>) => void;
+  getNodesInSelectionBox: () => string[];
+  updateViewport: (viewport: Partial<ViewportProps>) => void;
+};
+
+export type ViewportSlice = {
+  viewport: ViewportProps & ViewportActions;
 };
 
 // eslint-disable-next-line react-func/max-lines-per-function
@@ -34,8 +46,12 @@ export const createViewportSlice: StoreSlice<ViewportSlice> = (set, get) => ({
     position: { x: 0, y: 0 },
     width: 0,
     height: 0,
-    updateSize: (width: number, height: number) => {
-      set((state) => merge(state, { viewport: { width, height } }));
+    offsetLeft: 0,
+    offsetTop: 0,
+    updateSize: (width, height, offsetTop, offsetLeft) => {
+      set((state) =>
+        merge(state, { viewport: { width, height, offsetTop, offsetLeft } })
+      );
     },
     updateScale: (scale) => {
       set((state) => ({
@@ -64,6 +80,11 @@ export const createViewportSlice: StoreSlice<ViewportSlice> = (set, get) => ({
     },
     getNodesInSelectionBox: () => {
       return getNodesInsideRect(get());
+    },
+    updateViewport: (viewport) => {
+      set((state) => ({
+        viewport: merge({}, state.viewport, viewport),
+      }));
     },
   },
 });

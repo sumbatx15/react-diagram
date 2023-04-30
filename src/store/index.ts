@@ -6,8 +6,9 @@ import { createElementsSlice, ElementsSlice } from "./elementsSlice";
 import { createViewportSlice, ViewportSlice } from "./viewportSlice";
 import { subscribeWithSelector } from "zustand/middleware";
 import { createFitViewSlice, FitViewSlice } from "./fitviewSlice";
-import { createEventsSlice, EventsSlice } from "./eventsSlice";
+import { createConfigSlice, ConfigSlice } from "./configSlice";
 import { merge, omit } from "lodash-es";
+import { createIOSlice, IOSlice } from "./ioSlice";
 
 export type StoreState = NodesSlice &
   EdgesSlice &
@@ -15,7 +16,8 @@ export type StoreState = NodesSlice &
   ElementsSlice &
   ViewportSlice &
   FitViewSlice &
-  EventsSlice;
+  ConfigSlice &
+  IOSlice;
 
 export type StoreSlice<T> = StateCreator<StoreState, [], [], T>;
 
@@ -28,7 +30,8 @@ export const createDiagramStore = () => {
       ...createElementsSlice(set, get, store),
       ...createViewportSlice(set, get, store),
       ...createFitViewSlice(set, get, store),
-      ...createEventsSlice(set, get, store),
+      ...createConfigSlice(set, get, store),
+      ...createIOSlice(set, get, store),
     }))
   );
 };

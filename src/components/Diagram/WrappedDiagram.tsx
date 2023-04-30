@@ -2,7 +2,7 @@ import { FC, useLayoutEffect, useMemo } from "react";
 
 import React, { createContext, useContext } from "react";
 import { DiagramStoreHook, StoreState, useDiagrams } from "../../store";
-import { EventsSlice } from "../../store/eventsSlice";
+import { ConfigSlice } from "../../store/configSlice";
 import { NodeState, Vector } from "../../store/utils";
 import { Diagram, DiagramProps } from "./Diagram";
 interface NodeContextType {
@@ -65,7 +65,7 @@ export const useNodeState = () => {
 };
 
 export const DiagramView: FC<
-  { id: string } & Partial<EventsSlice> & DiagramProps
+  { id: string } & Partial<ConfigSlice> & DiagramProps
 > = React.memo(({ id, onConnection, ...diagramProps }) => {
   useLayoutEffect(() => {
     const diagram = useDiagrams.getState().createDiagramOnce(id);
@@ -74,7 +74,7 @@ export const DiagramView: FC<
 
   return (
     <DiagramContextProvider id={id}>
-      <Diagram {...diagramProps} />
+      <Diagram id={id} {...diagramProps} />
     </DiagramContextProvider>
   );
 });

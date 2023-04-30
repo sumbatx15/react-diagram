@@ -21,6 +21,19 @@ body {
   background: white;
   border-radius: 50%;
 }
+.handle-ghost {
+  position: absolute;
+  cursor: crosshair;
+  z-index: 100;
+  width: 32px;
+  height: 32px;
+  transform: translate(-50%, -50%);
+  left: 50%;
+  top: 50%;
+  touch-action: none;
+  background: white;
+  border-radius: 50%;
+}
 .handle.left {
   left: 0px;
   top: 50%;

@@ -20,11 +20,11 @@ export interface NodeCmpProps {
 export const Draggable: FC<LayerProps> = ({ id, children }) => {
   const ref = useRef<HTMLElement>(null);
   useLayoutEffect(() => {
-    intersectionObserver.observe(ref.current!);
+    // intersectionObserver.observe(ref.current!);
     resizeObserver.observe(ref.current!);
     return () => {
       resizeObserver.unobserve(ref.current!);
-      intersectionObserver.unobserve(ref.current!);
+      // intersectionObserver.unobserve(ref.current!);
     };
   }, []);
 
@@ -72,7 +72,7 @@ export const Draggable: FC<LayerProps> = ({ id, children }) => {
         shiftKey,
         tap,
       }) => {
-        if (canceled || pinching || ctrlKey || shiftKey) return;
+        if (canceled || pinching || ctrlKey || shiftKey) return cancel();
         if (
           event.target instanceof HTMLInputElement ||
           (event.target as HTMLElement).classList.contains("handle")

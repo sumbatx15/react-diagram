@@ -5,7 +5,6 @@ import { Box, Text } from "@chakra-ui/react";
 import { useNodeData } from "../Diagram/WrappedNode";
 export const DefaultNode: NodeFC = memo(({ id }) => {
   const [data] = useNodeData();
-  console.log("data:", data);
   return (
     <div
       // shadow="xl"
@@ -14,6 +13,7 @@ export const DefaultNode: NodeFC = memo(({ id }) => {
         position: "relative",
         background: "#070708",
         padding: "16px",
+        color: "white",
       }}
     >
       <Text /* onClick={toggle} */>{data.label || `Default: ${id}`}</Text>

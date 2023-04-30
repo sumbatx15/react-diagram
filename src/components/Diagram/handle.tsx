@@ -1,4 +1,4 @@
-import { Circle } from "@chakra-ui/react";
+import { AbsoluteCenter, Circle } from "@chakra-ui/react";
 import { useGesture } from "@use-gesture/react";
 import { FC, useLayoutEffect, useRef } from "react";
 import { createEdge } from "../../store/utils";
@@ -6,12 +6,16 @@ import { resizeObserver } from "../../utils/resizeObserver";
 import { useNodeContext } from "./WrappedNode";
 import { Placement } from "./utils";
 import { useDiagramContext, useGetDiagramStore } from "./WrappedDiagram";
+import { useDraggedEdge } from "../../hooks/useDraggedEdge";
+import { getInDiagramPosition } from "../../store/diagramStore";
 
 interface HandleProps {
   id: string;
   type: "target" | "source";
   placement: Placement;
 }
+
+
 
 export const Handle: FC<HandleProps> = ({ id, type, placement }) => {
   const ref = useRef<HTMLDivElement>(null);
@@ -45,48 +49,39 @@ export const Handle: FC<HandleProps> = ({ id, type, placement }) => {
         if (canceled || pinching) return;
         const state = useDiagram.getState();
         if (first) {
-          const rect = (
-            event.currentTarget as HTMLElement
-          ).getBoundingClientRect();
-          const xs =
-            (rect.left - state.viewport.position.x) / state.viewport.scale;
-          const ys =
-            (rect.top - state.viewport.position.y) / state.viewport.scale;
+          const handleCenter = state.getHandleCenter(nodeId, id);
 
           useDiagram.getState().updateDraggedEdgePosition({
-            start: {
-              x: xs + rect.width / 2 / state.viewport.scale,
-              y: ys + rect.height / 2 / state.viewport.scale,
-            },
+            start: handleCenter,
+            end: handleCenter,
           });
+
           useDiagram.getState().setDraggedEdgeVisible(true);
+          useDiagram.getState().setDraggedEdge({
+            handleId: id,
+            nodeId,
+            handleType: type,
+          });
         }
 
-        const xs = (xy[0] - state.viewport.position.x) / state.viewport.scale;
-        const ys = (xy[1] - state.viewport.position.y) / state.viewport.scale;
         useDiagram.getState().updateDraggedEdgePosition({
-          end: {
-            x: xs,
-            y: ys,
-          },
+          end: getInDiagramPosition({ x: xy[0], y: xy[1] }, state.viewport),
         });
 
-        const element = document.elementFromPoint(...xy);
-        if (element && element.classList.contains("handle")) {
-          const rect = element.getBoundingClientRect();
-          const xs =
-            (rect.left - state.viewport.position.x) / state.viewport.scale;
-          const ys =
-            (rect.top - state.viewport.position.y) / state.viewport.scale;
-          const elementCenter = [
-            xs + rect.width / 2 / state.viewport.scale,
-            ys + rect.height / 2 / state.viewport.scale,
-          ];
+        const element = document.elementFromPoint(...xy) as HTMLElement | null;
+        if (
+          element &&
+          element.dataset.elementType === "handle" &&
+          element.dataset.type !== type &&
+          element.dataset.id !== id
+        ) {
+          const handleCenter = state.getHandleCenter(
+            element.dataset.nodeId as string,
+            element.dataset.id as string
+          );
+
           useDiagram.getState().updateDraggedEdgePosition({
-            end: {
-              x: elementCenter[0],
-              y: elementCenter[1],
-            },
+            end: handleCenter,
           });
         }
       },
@@ -97,7 +92,7 @@ export const Handle: FC<HandleProps> = ({ id, type, placement }) => {
         if (
           from &&
           to &&
-          to.classList.contains("handle") &&
+          to.dataset.elementType === "handle" &&
           from.dataset.nodeId !== to.dataset.nodeId &&
           from.dataset.id !== to.dataset.id &&
           to.dataset.type !== type
@@ -132,6 +127,9 @@ export const Handle: FC<HandleProps> = ({ id, type, placement }) => {
       },
     }
   );
+  const draggedEdge = useDraggedEdge();
+  if (draggedEdge?.handleType === type && draggedEdge?.nodeId !== nodeId)
+    return null;
   return (
     <div
       ref={ref}
@@ -142,17 +140,20 @@ export const Handle: FC<HandleProps> = ({ id, type, placement }) => {
       data-node-id={nodeId}
       data-type={type}
     >
-      {/* <AbsoluteCenter data-id={id} data-node-id={nodeId} data-type={type}>
+      {draggedEdge && (
         <Circle
+          data-diagram-id={diagramId}
+          data-element-type="handle"
           data-id={id}
           data-node-id={nodeId}
           data-type={type}
-          opacity="0"
-          className="handle"
+          opacity={0}
+          className="handle-ghost"
+          position="absolute"
           size="42px"
-          // border="1px dashed gray"
+          border="1px dashed gray"
         />
-      </AbsoluteCenter> */}
+      )}
     </div>
   );
 };
