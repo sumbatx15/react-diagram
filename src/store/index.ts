@@ -42,6 +42,7 @@ interface DiagramsStore {
   createDiagram: (id: string) => DiagramStoreHook;
   createDiagramOnce: (id: string) => DiagramStoreHook;
   clearDiagram: (id: string) => void;
+  getDiagram: (id: string) => DiagramStoreHook;
 }
 
 export const useDiagrams = create<DiagramsStore>((set, get) => ({
@@ -60,5 +61,8 @@ export const useDiagrams = create<DiagramsStore>((set, get) => ({
     set((state) => ({
       diagrams: omit(state.diagrams, id),
     }));
+  },
+  getDiagram: (id) => {
+    return get().createDiagramOnce(id);
   },
 }));

@@ -70,7 +70,7 @@ export const Draggable: FC<LayerProps> = ({ id, children }) => {
             .getState()
             .updateSelectedNodesPositions({ x: deltaX, y: deltaY });
         } else {
-          useDiagram.getState().setSelectedNodes([id]);
+          useDiagram.getState().selectNodes([id]);
           useDiagram.getState().updateNodePosition(id, { x: newX, y: newY });
         }
       },

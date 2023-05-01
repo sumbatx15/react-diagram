@@ -44,3 +44,48 @@ body {
   top: 50%;
   transform: translate(50%, -50%);
 }
+
+.handle.top {
+  top: 0px;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.handle.bottom {
+  bottom: 0px;
+  left: 50%;
+  transform: translate(-50%, 50%);
+}
+
+.edge {
+  pointer-events: none;
+  stroke: white;
+  stroke-width: 1px;
+  touch-action: none;
+  stroke-linecap: round;
+  fill: none;
+}
+
+.edge.ghost {
+  stroke: none;
+  stroke-width: 16px;
+}
+
+.edge.hover {
+  stroke: rgba(0, 0, 0, 0.301);
+  stroke-width: 16px;
+}
+.edge.animated {
+  stroke-dasharray: 10 6;
+  stroke-dashoffset: 0;
+  animation: stroke 0.45s linear infinite;
+}
+
+@keyframes stroke {
+  0% {
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dashoffset: -16;
+  }
+}

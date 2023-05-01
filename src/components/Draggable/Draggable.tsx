@@ -1,7 +1,6 @@
 import { animated, useSpring } from "@react-spring/web";
 import { useGesture } from "@use-gesture/react";
 import { FC, useLayoutEffect, useRef } from "react";
-import { intersectionObserver } from "../../utils/intersectionObserver";
 import { resizeObserver } from "../../utils/resizeObserver";
 import {
   useDiagramContext,
@@ -72,7 +71,7 @@ export const Draggable: FC<LayerProps> = ({ id, children }) => {
         shiftKey,
         tap,
       }) => {
-        if (canceled || pinching || ctrlKey || shiftKey) return cancel();
+        if (canceled || pinching || ctrlKey) return cancel();
         if (
           event.target instanceof HTMLInputElement ||
           (event.target as HTMLElement).classList.contains("handle")
@@ -80,11 +79,22 @@ export const Draggable: FC<LayerProps> = ({ id, children }) => {
           event.stopPropagation();
           return cancel();
         }
+        const state = useDiagram.getState();
+        if (tap) {
+          if (shiftKey) {
+            console.log("shiftKey:", shiftKey);
+            const isSelected = state.getNodeState(id)?.selected;
+            console.log("isSelected:", isSelected);
+            isSelected ? state.deselectNode(id) : state.selectNode(id);
+          } else {
+            state.selectNodes([id]);
+          }
+          return cancel();
+        }
 
         event.stopPropagation();
-        event.stopImmediatePropagation();
 
-        const scale = useDiagram.getState().viewport.scale;
+        const scale = state.viewport.scale;
         const deltaX = x / scale;
         const deltaY = y / scale;
 
@@ -94,21 +104,17 @@ export const Draggable: FC<LayerProps> = ({ id, children }) => {
           x: newX,
           y: newY,
         });
-        const hasSelectedNodes =
-          useDiagram.getState().getSelectedNodeIds().length > 0;
-        if (
-          hasSelectedNodes &&
-          useDiagram.getState().getSelectedNodeIds().includes(id)
-        ) {
+
+        const hasSelectedNodes = state.getSelectedNodeIds().length > 0;
+        if (hasSelectedNodes && state.getSelectedNodeIds().includes(id)) {
           useDiagram
             .getState()
             .updateSelectedNodesPositions({ x: deltaX, y: deltaY });
         } else {
-          useDiagram.getState().setSelectedNodes([id]);
-          useDiagram.getState().updateNodePosition(id, { x: newX, y: newY });
+          // state.selectNodes([id]);
+          state.updateNodePosition(id, { x: newX, y: newY });
         }
       },
-      onDragEnd: ({ tap }) => {},
     },
     {
       target: ref,
@@ -122,6 +128,7 @@ export const Draggable: FC<LayerProps> = ({ id, children }) => {
     <animated.div
       //@ts-ignore
       ref={ref}
+      tabIndex={0}
       className="layer"
       data-diagram-id={diagramId}
       data-element-type="node"

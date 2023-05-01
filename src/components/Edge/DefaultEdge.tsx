@@ -1,13 +1,14 @@
 import { Button } from "@chakra-ui/react";
 import { animated as a, useSpring } from "@react-spring/web";
 import { memo, useLayoutEffect, useRef } from "react";
-import { createEdgePosition } from "../../store/utils";
+import { createEdgePosition, createZeroVector } from "../../store/utils";
 import { EdgeFC } from "../../types";
 import { intersectionObserver } from "../../utils/intersectionObserver";
 import { getCubicBezierPathData } from "../Diagram/edge";
-import { getBezierPath } from "../Diagram/utils";
+import { getBezierPath, getEdgeCenter } from "../Diagram/utils";
 import { useGetDiagramStore } from "../Diagram/WrappedDiagram";
 
+const foreignObjectSize = 32;
 export const DefaultEdge: EdgeFC = memo((edge) => {
   const ref = useRef<SVGGElement>(null);
   const useDiagram = useGetDiagramStore();
@@ -21,21 +22,28 @@ export const DefaultEdge: EdgeFC = memo((edge) => {
   // }, []);
 
   const { source, sourceHandle, target, targetHandle, animated } = edge;
-  const sourceCenter = useDiagram
-    .getState()
-    .getHandleCenter(source, sourceHandle) || { x: 0, y: 0 };
-  const targetCenter = useDiagram
-    .getState()
-    .getHandleCenter(target, targetHandle) || { x: 0, y: 0 };
-  const sourcePlacement = useDiagram
-    .getState()
-    .getHandlePlacement(source, sourceHandle);
-  const targetPlacement = useDiagram
-    .getState()
-    .getHandlePlacement(target, targetHandle);
+  const state = useDiagram.getState();
+
+  const sourceCenter =
+    state.getHandleCenter(source, sourceHandle) || createZeroVector();
+  const targetCenter =
+    state.getHandleCenter(target, targetHandle) || createZeroVector();
+
+  const sourcePlacement = state.getHandlePlacement(source, sourceHandle);
+  const targetPlacement = state.getHandlePlacement(target, targetHandle);
+
+  const [centerX, centerY] = getEdgeCenter({
+    sourceX: sourceCenter.x,
+    sourceY: sourceCenter.y,
+    targetX: targetCenter.x,
+    targetY: targetCenter.y,
+  });
+
   const [styles, api] = useSpring(() => ({
     start: [sourceCenter.x, sourceCenter.y],
     end: [targetCenter.x, targetCenter.y],
+    centerX: centerX - foreignObjectSize / 2,
+    centerY: centerY - foreignObjectSize / 2,
     d: getBezierPath({
       sourceX: sourceCenter.x,
       sourceY: sourceCenter.y,
@@ -46,6 +54,7 @@ export const DefaultEdge: EdgeFC = memo((edge) => {
       curvature: 0.25,
     })[0],
     visible: true,
+    selected: state.selectedEdges.includes(edge.id),
   }));
 
   useDiagram((state) => {
@@ -59,17 +68,29 @@ export const DefaultEdge: EdgeFC = memo((edge) => {
       return api.set({ visible: false });
     }
 
+    const isSelected = state.selectedEdges.includes(edge.id);
+
     if (
       sourceCenter.x !== styles.start.get()[0] ||
       sourceCenter.y !== styles.start.get()[1] ||
       targetCenter.x !== styles.end.get()[0] ||
       targetCenter.y !== styles.end.get()[1] ||
-      !styles.visible.get()
+      !styles.visible.get() ||
+      isSelected !== styles.selected.get()
     ) {
+      const [centerX, centerY] = getEdgeCenter({
+        sourceX: sourceCenter.x,
+        sourceY: sourceCenter.y,
+        targetX: targetCenter.x,
+        targetY: targetCenter.y,
+      });
       api.set({
         start: [sourceCenter.x, sourceCenter.y],
         end: [targetCenter.x, targetCenter.y],
         visible: true,
+        centerX: centerX - foreignObjectSize / 2,
+        centerY: centerY - foreignObjectSize / 2,
+        selected: isSelected,
         d: getBezierPath({
           sourceX: sourceCenter.x,
           sourceY: sourceCenter.y,
@@ -86,12 +107,13 @@ export const DefaultEdge: EdgeFC = memo((edge) => {
   return (
     <g
       ref={ref}
+      style={{
+        pointerEvents: "auto",
+      }}
       onClick={() => useDiagram.getState().setSelectedEdges([edge.id])}
     >
       <a.path
-        onClick={() => useDiagram.getState().setSelectedEdges([edge.id])}
         style={{
-          zIndex: 100,
           cursor: "pointer",
           pointerEvents: "auto",
           touchAction: "none",
@@ -99,52 +121,43 @@ export const DefaultEdge: EdgeFC = memo((edge) => {
           display: styles.visible.to((v) => (v ? "initial" : "none")),
         }}
         d={styles.d}
-        stroke="black"
         strokeWidth="16"
-        strokeLinecap="round"
-        fill="none"
-      >
-        {animated && (
-          <animate
-            attributeName="stroke-dashoffset"
-            attributeType="XML"
-            from="0"
-            to="-16"
-            dur="0.45s"
-            repeatCount="indefinite"
-            begin="0s"
-          />
-        )}
-      </a.path>
+        stroke="white"
+      ></a.path>
       <a.path
-        onClick={() => useDiagram.getState().setSelectedEdges([edge.id])}
+        className={`edge ${edge.animated ? "animated" : ""}`}
         style={{
-          stroke: "white",
-          zIndex: 100,
-          pointerEvents: "auto",
-          touchAction: "none",
           display: styles.visible.to((v) => (v ? "initial" : "none")),
         }}
         d={styles.d}
-        stroke="black"
-        strokeWidth="1"
-        strokeLinecap="round"
-        strokeDasharray={animated ? "10 6" : ""}
-        strokeDashoffset={animated ? "0" : ""}
-        fill="none"
+      ></a.path>
+
+      <a.foreignObject
+        width={foreignObjectSize}
+        height={foreignObjectSize}
+        x={styles.centerX}
+        y={styles.centerY}
+        style={{
+          background: "transparent",
+          pointerEvents: "auto",
+          display: styles.visible.to((v) => (v ? "initial" : "none")),
+        }}
+        requiredExtensions="http://www.w3.org/1999/xhtml"
       >
-        {animated && (
-          <animate
-            attributeName="stroke-dashoffset"
-            attributeType="XML"
-            from="0"
-            to="-16"
-            dur="0.45s"
-            repeatCount="indefinite"
-            begin="0s"
-          />
-        )}
-      </a.path>
+        <a.div
+          onClick={(ev) => {
+            ev.stopPropagation();
+            return useDiagram.getState().deleteEdge(edge.id);
+          }}
+          style={{
+            width: 32,
+            height: 32,
+            background: "white",
+            borderRadius: "50%",
+            display: styles.selected.to((v) => (v ? "block" : "none")),
+          }}
+        ></a.div>
+      </a.foreignObject>
     </g>
   );
 });

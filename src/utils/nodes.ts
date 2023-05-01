@@ -1,4 +1,5 @@
 import { keyBy, mapValues } from "lodash-es";
+import { DiagramEdge } from "../store/diagramStore";
 import { DiagramNode } from "../store/utils";
 
 export const createStoreNodes = (nodes: DiagramNode[]) => {
@@ -10,4 +11,10 @@ export const createStoreNodes = (nodes: DiagramNode[]) => {
     nodeStates: mapValues(nodesById, (node) => node.state),
     nodeTypes: mapValues(nodesById, (node) => node.type || "default"),
   };
+};
+
+export const getNodeEdges = (nodeId: string, edges: DiagramEdge[]) => {
+  return edges.filter(
+    (edge) => edge.source === nodeId || edge.target === nodeId
+  );
 };

@@ -37,8 +37,5 @@ export const createIOSlice: StoreSlice<IOSlice> = (set, get) => ({
       ...createStoreNodes(project.nodes),
       edges: project.edges,
     }));
-    setTimeout(() => {
-      get().viewport.updateViewport(project.viewport);
-    }, 10);
   },
 });

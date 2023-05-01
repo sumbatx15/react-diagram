@@ -16,7 +16,7 @@ export const DefaultNode: NodeFC = memo(({ id }) => {
         color: "white",
       }}
     >
-      <Text /* onClick={toggle} */>{data.label || `Default: ${id}`}</Text>
+      <Text /* onClick={toggle} */>{data?.label || `Default: ${id}`}</Text>
       <Handle id="in" type="target" placement="left" />
       <Handle id="out" type="source" placement="right" />
     </div>

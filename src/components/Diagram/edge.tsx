@@ -209,6 +209,11 @@ export const DraggedEdge: FC = () => {
   });
   if (!isVisible) return null;
   return (
-    <Edge style={{ pointerEvents: "none" }} stroke="white"  animated={false} d={styles.d} />
+    <Edge
+      style={{ pointerEvents: "none" }}
+      stroke="white"
+      animated={false}
+      d={styles.d}
+    />
   );
 };

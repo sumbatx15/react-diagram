@@ -1,23 +1,21 @@
-import { AbsoluteCenter, Circle } from "@chakra-ui/react";
+import { Circle } from "@chakra-ui/react";
 import { useGesture } from "@use-gesture/react";
-import { FC, useLayoutEffect, useRef } from "react";
-import { createEdge } from "../../store/utils";
-import { resizeObserver } from "../../utils/resizeObserver";
-import { useNodeContext } from "./WrappedNode";
-import { Placement } from "./utils";
-import { useDiagramContext, useGetDiagramStore } from "./WrappedDiagram";
+import { FC, memo, useLayoutEffect, useRef } from "react";
 import { useDraggedEdge } from "../../hooks/useDraggedEdge";
 import { getInDiagramPosition } from "../../store/diagramStore";
+import { createEdge } from "../../store/utils";
+import { resizeObserver } from "../../utils/resizeObserver";
+import { Placement } from "./utils";
+import { useDiagramContext, useGetDiagramStore } from "./WrappedDiagram";
+import { useNodeContext } from "./WrappedNode";
 
-interface HandleProps {
+interface HandleProps extends React.HTMLAttributes<HTMLDivElement> {
   id: string;
   type: "target" | "source";
   placement: Placement;
 }
 
-
-
-export const Handle: FC<HandleProps> = ({ id, type, placement }) => {
+export const Handle: FC<HandleProps> = memo(({ id, type, placement }) => {
   const ref = useRef<HTMLDivElement>(null);
   const { diagramId } = useDiagramContext();
   const { nodeId } = useNodeContext();
@@ -28,43 +26,35 @@ export const Handle: FC<HandleProps> = ({ id, type, placement }) => {
   }, [placement]);
 
   useLayoutEffect(() => {
-    resizeObserver.observe(ref.current!);
-
+    ref.current && resizeObserver.observe(ref.current);
     return () => {
-      resizeObserver.unobserve(ref.current!);
+      ref.current && resizeObserver.unobserve(ref.current);
       useDiagram.getState().clearHandleDimensions(nodeId, id);
     };
   }, []);
 
-  // useResizeObserver({
-  //   ref,
-  //   onResize: () => {
-  //     useDiagram.getState().setHandleElement2(nodeId, id, ref.current!);
-  //   },
-  // });
-
   useGesture(
     {
-      onDrag: ({ xy, event, first, canceled, pinching }) => {
+      onDrag: ({ xy, event, first, canceled, pinching, tap }) => {
         if (canceled || pinching) return;
         const state = useDiagram.getState();
         if (first) {
           const handleCenter = state.getHandleCenter(nodeId, id);
 
-          useDiagram.getState().updateDraggedEdgePosition({
+          state.updateDraggedEdgePosition({
             start: handleCenter,
             end: handleCenter,
           });
 
-          useDiagram.getState().setDraggedEdgeVisible(true);
-          useDiagram.getState().setDraggedEdge({
+          state.setDraggedEdgeVisible(true);
+          state.setDraggedEdge({
             handleId: id,
             nodeId,
             handleType: type,
           });
         }
 
-        useDiagram.getState().updateDraggedEdgePosition({
+        state.updateDraggedEdgePosition({
           end: getInDiagramPosition({ x: xy[0], y: xy[1] }, state.viewport),
         });
 
@@ -156,4 +146,4 @@ export const Handle: FC<HandleProps> = ({ id, type, placement }) => {
       )}
     </div>
   );
-};
+});

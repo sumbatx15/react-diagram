@@ -12,6 +12,7 @@ import {
 
 export const resizeObserver = new ResizeObserver(async (entries) => {
   console.time("generating rects");
+  console.log("start generating rects");
   const diagramId =
     entries
       .find((entry) => entry.target.hasAttribute("data-diagram-id"))
@@ -53,7 +54,6 @@ export const resizeObserver = new ResizeObserver(async (entries) => {
       handleDimensions: ElementsSlice["handleDimensions"];
     }
   );
-  console.timeEnd("generating rects");
 
   useDiagram.setState((state) => ({
     handleDimensions: merge(state.handleDimensions, handleDimensions),

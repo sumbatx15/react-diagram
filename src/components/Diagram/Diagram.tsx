@@ -19,7 +19,11 @@ import { Background } from "../background";
 import { ElevatedEdgeRenderer } from "../EdgeRenderer/ElevatedEdgeRenderer";
 import { mockProject } from "../../mock/project";
 import { CustomNode } from "../Node/CustomNode";
-export interface DiagramProps {
+import { useKey } from "react-use";
+import { NodeRenderer } from "../NodeRenderer/NodeRenderer";
+import { useHotkeys } from "react-hotkeys-hook";
+import { mergeRefs } from "../../utils";
+export interface DiagramProps extends React.HTMLAttributes<HTMLDivElement> {
   nodeTypes?: NodeTypes;
   edgeTypes?: EdgeTypes;
   minZoom?: number;
@@ -32,6 +36,8 @@ export const Diagram: FC<DiagramProps> = ({
   minZoom = 0.1,
   maxZoom = 5,
   id,
+  children,
+  ...props
 }) => {
   const useDiagram = useGetDiagramStore();
   const updateScale = useDiagram((state) => state.viewport.updateScale);
@@ -63,7 +69,6 @@ export const Diagram: FC<DiagramProps> = ({
 
   const addMore = () => {
     const { edges, nodes } = createNodesAndEdges(10, 10);
-    console.log("nodes:", nodes);
     setNodes(nodes);
     setEdges(edges);
     setTimeout(() => {
@@ -73,7 +78,7 @@ export const Diagram: FC<DiagramProps> = ({
 
   const containerRef = useRef<HTMLDivElement>(null);
   const paneRef = useRef<HTMLDivElement>(null);
-  console.log("useDiagram:", useDiagram);
+
   const [styles, api] = useSpring(() => ({
     x: 0,
     y: 0,
@@ -106,7 +111,6 @@ export const Diagram: FC<DiagramProps> = ({
     }
   });
 
-  const [d, setD] = useState(0);
   useGesture(
     {
       onDrag: ({
@@ -120,7 +124,6 @@ export const Diagram: FC<DiagramProps> = ({
         shiftKey,
         first,
       }) => {
-        event.stopPropagation();
         if (canceled) return;
         if (
           (event.target as HTMLElement).classList.contains("layer") ||
@@ -156,14 +159,21 @@ export const Diagram: FC<DiagramProps> = ({
         });
         viewport.updatePosition({ x: newX, y: newY });
       },
-      onDragEnd: ({ memo, tap }) => {
-        if (tap) {
-          useDiagram.getState().setSelectedNodes([]);
+      onDragEnd: ({ memo, tap, event }) => {
+        if (
+          tap &&
+          (event.target === paneRef.current ||
+            (event.target as HTMLElement).classList.contains(
+              "diagram-container"
+            ))
+        ) {
+          console.log("event.target:");
+          useDiagram.getState().selectNodes([]);
           useDiagram.getState().setSelectedEdges([]);
         }
         if (useDiagram.getState().viewport.showSelectionBox) {
           const nodeIds = getNodesInsideRect(useDiagram.getState());
-          useDiagram.getState().setSelectedNodes(nodeIds);
+          useDiagram.getState().selectNodes(nodeIds);
           useDiagram.setState((state) => ({
             viewport: {
               ...state.viewport,
@@ -176,8 +186,6 @@ export const Diagram: FC<DiagramProps> = ({
           }));
         }
       },
-      // now we need to create onWheel event the will zoom in and out on the point where the mouse is
-      // the onWheel event is attached to the containerRef but we are going to scale the paneRef
       onWheel: ({ event: e, delta: [, dy], pinching }) => {
         e.stopPropagation();
         if (pinching) return;
@@ -225,12 +233,6 @@ export const Diagram: FC<DiagramProps> = ({
         const xs = (ox - x) / scale;
         const ys = (oy - y) / scale;
 
-        // const newScale = clamp(
-        //   Math.exp(dy * -0.00125) * scale,
-        //   minZoom,
-        //   maxZoom
-        // );
-        // const newScale = clamp(scale + d, 0.1, 5);
         const newX = ox - xs * newScale;
         const newY = oy - ys * newScale;
         api.set({
@@ -249,45 +251,6 @@ export const Diagram: FC<DiagramProps> = ({
           },
         }));
       },
-      // onPinch: ({
-      //   offset: [d],
-      //   origin: [ox, oy],
-      //   da: [, da],
-      //   delta: [d1, a1],
-      // }) => {
-      //   const viewport = useDiagram.getState().viewport;
-      //   const prevScale = styles.scale.get();
-      //   const newScale = clamp(prevScale + d1, 0.1, 5);
-
-      //   // Calculate the offset of the viewport
-      //   const offsetX = -ox / d1 + styles.x.get();
-      //   const offsetY = -oy / d1 + styles.y.get();
-      //   const oox = ox * prevScale;
-      //   const ooy = oy * prevScale;
-
-      //   const newX = oox - ((oox - styles.x.get()) * newScale) / prevScale;
-      //   const newY = ooy - ((ooy - styles.y.get()) * newScale) / prevScale;
-
-      //   api.set({
-      //     scale: newScale,
-      //     x: newX,
-      //     y: newY,
-      //   });
-
-      //   useDiagram.setState((state) => ({
-      //     viewport: {
-      //       ...state.viewport,
-      //       scale: newScale,
-      //       position: {
-      //         x: newX,
-      //         y: newY,
-      //       },
-      //     },
-      //   }));
-      // },
-      // onPinchEnd: ({ cancel }) => {
-      //   cancel();
-      // },
     },
     {
       target: containerRef,
@@ -297,7 +260,6 @@ export const Diagram: FC<DiagramProps> = ({
         },
       },
       pinch: {
-        pinchOnWheel: false,
         from: () => {
           return [styles.scale.get(), 0];
         },
@@ -308,74 +270,53 @@ export const Diagram: FC<DiagramProps> = ({
     }
   );
 
-  console.count("Diagram");
-  const [show, setShow] = useState(false);
+  const ref = useHotkeys("delete", (ev) => {
+    useDiagram.getState().deleteSelectedNodes();
+  });
 
   return (
-    <Box
-      w="100%"
-      h="100%"
-      bg="blackAlpha.600"
-      backdropFilter="blur(10px)"
-      userSelect="none"
-      overflow="hidden"
-      style={{ touchAction: "none" }}
-      color="white"
-      ref={containerRef}
+    <div
+      className="diagram-container"
+      style={{
+        touchAction: "none",
+        width: "100%",
+        height: "100%",
+        userSelect: "none",
+        outline: "none",
+        background: "black",
+        overflow: "hidden",
+        color: "white",
+      }}
+      tabIndex={0}
+      ref={mergeRefs(containerRef, ref)}
+      {...props}
     >
-      <Background color="gray" id={id} />
-
+      {/* <Background color="gray" id={id} /> */}
+      {children}
       <HStack zIndex={100} pos="absolute">
         <button onClick={handleAdd}>addnode</button>
         <button onClick={addMore}>add more</button>
         <button onClick={() => randomizePositions()}>randomize</button>
         <button onClick={() => fitView()}>fitView</button>
-        <button onClick={() => setShow((prev) => !prev)}>show</button>
-        <button onClick={() => console.log(useDiagram.getState().export())}>
-          export
-        </button>
-        <button
-          onClick={() => console.log(useDiagram.getState().import(mockProject))}
-        >
-          import
-        </button>
-        <button>{d}</button>
+
         <FullscreenBtn target={containerRef} />
       </HStack>
       <animated.div
         ref={paneRef}
+        className="diagram-pane"
         style={{
           ...styles,
-          // position: "absolute",
-          // border: "1px solid red",
           width: "100%",
           height: "100%",
           touchAction: "none",
           transformOrigin: "top left",
-          // transformOrigin: styles.origin.to((x, y) => `${x}px ${y}px`),
         }}
       >
         <SelectionBox />
         <EdgeRenderer edgeTypes={edgeTypes} />
-        {nodeIds.map((id) => {
-          const Component =
-            nodeTypes[useDiagram.getState().nodeTypes[id]] ||
-            nodeTypes["default"] ||
-            DefaultNode;
-          return <WrappedNode nodeId={id} key={id} Component={Component} />;
-        })}
-        <ElevatedEdgeRenderer edgeTypes={edgeTypes} />
+        <NodeRenderer nodeTypes={nodeTypes} />
+        <ElevatedEdgeRenderer edgeTypes={edgeTypes} style={{ zIndex: 1 }} />
       </animated.div>
-      {show && (
-        <Box pos="absolute" inset="0" bg="blackAlpha.500" padding="100px">
-          <DiagramView
-            id="diagram-2"
-            nodeTypes={{
-              custom: CustomNode,
-            }}
-          />
-        </Box>
-      )}
-    </Box>
+    </div>
   );
 };
