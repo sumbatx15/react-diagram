@@ -272,6 +272,7 @@ export const Diagram: FC<DiagramProps> = ({
 
   const ref = useHotkeys("delete", (ev) => {
     useDiagram.getState().deleteSelectedNodes();
+    useDiagram.getState().deleteSelectedEdges();
   });
 
   return (

@@ -12,6 +12,7 @@ export type EdgesSlice = {
 
   selectedEdges: string[];
   setSelectedEdges: (edges: string[]) => void;
+  deleteSelectedEdges: () => void;
   getEdgesByElevation: () => { elevated: DiagramEdge[]; normal: DiagramEdge[] };
 
   updateEdgePosition: (id: string, position: StartEndPosition) => void;
@@ -29,6 +30,20 @@ export const createEdgesSlice: StoreSlice<EdgesSlice> = (set, get) => ({
   edgePositions: {},
   edgeData: {},
   selectedEdges: [],
+  deleteSelectedEdges: () => {
+    set((state) => ({
+      edges: state.edges.filter(
+        (edge) => !state.selectedEdges.includes(edge.id)
+      ),
+      edgePositions: Object.keys(state.edgePositions).reduce((acc, edgeId) => {
+        if (!state.selectedEdges.includes(edgeId)) {
+          acc[edgeId] = state.edgePositions[edgeId];
+        }
+        return acc;
+      }, {} as Record<string, StartEndPosition>),
+    }));
+  },
+
   deleteEdges: (ids) => {
     set((state) => ({
       edges: state.edges.filter((edge) => !ids.includes(edge.id)),
