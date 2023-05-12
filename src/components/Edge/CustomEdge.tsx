@@ -1,13 +1,8 @@
-import { Button } from "@chakra-ui/react";
-import { animated as a, useSpring } from "@react-spring/web";
-import { memo, useCallback, useLayoutEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { shallow } from "zustand/shallow";
 import { useEdge } from "../../hooks/useEdge";
-import { createEdgePosition, createZeroVector } from "../../store/utils";
 import { EdgeFC } from "../../types";
-import { intersectionObserver } from "../../utils/intersectionObserver";
-import { getCubicBezierPathData } from "../Diagram/edge";
-import { getBezierPath, getEdgeCenter } from "../Diagram/utils";
+import { getEdgeCenter } from "../Diagram/utils";
 import { useGetDiagramStore } from "../Diagram/WrappedDiagram";
 
 const foreignObjectSize = 24;

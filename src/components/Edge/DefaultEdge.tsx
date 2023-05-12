@@ -1,10 +1,7 @@
-import { Button } from "@chakra-ui/react";
 import { animated as a, useSpring } from "@react-spring/web";
-import { memo, useLayoutEffect, useRef } from "react";
-import { createEdgePosition, createZeroVector } from "../../store/utils";
+import { memo, useRef } from "react";
+import { createZeroVector } from "../../store/utils";
 import { EdgeFC } from "../../types";
-import { intersectionObserver } from "../../utils/intersectionObserver";
-import { getCubicBezierPathData } from "../Diagram/edge";
 import { getBezierPath, getEdgeCenter } from "../Diagram/utils";
 import { useGetDiagramStore } from "../Diagram/WrappedDiagram";
 

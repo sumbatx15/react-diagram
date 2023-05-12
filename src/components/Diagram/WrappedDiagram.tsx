@@ -33,7 +33,8 @@ export const useGetDiagramStore = (): DiagramStoreHook => {
 
 export const useNodeData = <T,>() => {
   const { diagramId: nodeId } = useDiagramContext();
-  const data = useGetDiagramStore((state) => state.nodeData[nodeId]) as T;
+  const useDiagram = useGetDiagramStore();
+  const data = useDiagram((state) => state.nodeData[nodeId]) as T;
   const setter = useMemo(
     () => useDiagram.getState().updateNodeData.bind(null, nodeId),
     [nodeId]
@@ -44,7 +45,8 @@ export const useNodeData = <T,>() => {
 
 export const useNodePosition = () => {
   const { diagramId: nodeId } = useDiagramContext();
-  const position = useGetDiagramStore((state) => state.nodePositions[nodeId]);
+  const useDiagram = useGetDiagramStore();
+  const position = useDiagram((state) => state.nodePositions[nodeId]);
   const setter = useMemo(
     () => useDiagram.getState().updateNodePosition.bind(null, nodeId),
     [nodeId]
@@ -55,7 +57,8 @@ export const useNodePosition = () => {
 
 export const useNodeState = () => {
   const { diagramId: nodeId } = useDiagramContext();
-  const nodeState = useGetDiagramStore((state) => state.nodeStates[nodeId]);
+  const useDiagram = useGetDiagramStore();
+  const nodeState = useDiagram((state) => state.nodeStates[nodeId]);
   const setter = useMemo(
     () => useDiagram.getState().updateNodeState.bind(null, nodeId),
     [nodeId]

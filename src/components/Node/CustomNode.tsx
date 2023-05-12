@@ -1,13 +1,17 @@
 import { FC } from "react";
 import { NodeFC } from "../../types";
 import { Handle } from "../Diagram/handle";
-import { Box, Button, Input, Stack, Text } from "@chakra-ui/react";
 import { useNode, useNodeData, useNodePosition } from "../Diagram/WrappedNode";
 import { useToggle } from "react-use";
 
 const Inp = () => {
   const [data, setData] = useNodeData<string>();
-  return <input value={data} onInput={(e) => setData(e.target.value)} />;
+  return (
+    <input
+      value={data}
+      onInput={(e) => setData((e.target as HTMLInputElement).value)}
+    />
+  );
 };
 export const CustomNode: NodeFC = ({ id }) => {
   const [show, toggle] = useToggle(true);
@@ -26,10 +30,7 @@ export const CustomNode: NodeFC = ({ id }) => {
       {show && <Handle id="out2" type="source" placement="bottom" />}
 
       <p /* onClick={toggle} */>CustomNode - {id}</p>
-      <Stack>
-        <Inp />
-        {/* <input value={data} onInput={(e) => setData(e.target.value)} /> */}
-      </Stack>
+      <Inp />
       <p>Heloo</p>
       <button onClick={toggle}>Toggle handles</button>
       {show && <Handle id="out" type="source" placement="right" />}

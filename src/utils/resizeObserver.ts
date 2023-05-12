@@ -1,11 +1,9 @@
 import { merge, set } from "lodash-es";
-import { useGetDiagramStore } from "../components/Diagram/WrappedDiagram";
 import { useDiagrams } from "../store";
 import { ElementsSlice } from "../store/elementsSlice";
 import {
   DOMRectLike,
   getHandleDimension,
-  getUnscaledDOMRect,
   getUnscaledHandlesRects,
   getUnscaledNodeRect,
 } from "../store/utils";
@@ -27,10 +25,8 @@ export const resizeObserver = new ResizeObserver(async (entries) => {
       target.getAttribute("data-node-id") ||
       target.getAttribute("data-id") ||
       "";
-    acc[nodeId] ||= getUnscaledNodeRect(
-      nodeId,
-      scale
-    ) /* getUnscaledDOMRect(target.getBoundingClientRect(), scale) */;
+    const rect = getUnscaledNodeRect(nodeId, scale);
+    rect && (acc[nodeId] = rect);
     return acc;
   }, {} as Record<string, DOMRectLike>);
 
@@ -59,4 +55,24 @@ export const resizeObserver = new ResizeObserver(async (entries) => {
     handleDimensions: merge(state.handleDimensions, handleDimensions),
     nodeUnscaledRects: merge(state.nodeUnscaledRects, nodeUnscaledRects),
   }));
+});
+
+export const containerResizeObserver = new ResizeObserver((entries) => {
+  const diagramId =
+    entries
+      .find((entry) => entry.target.hasAttribute("data-diagram-id"))
+      ?.target.getAttribute("data-diagram-id") || "";
+  const useDiagram = useDiagrams.getState().diagrams[diagramId];
+
+  const entry = entries[0];
+  console.log('entry:', entry)
+
+  useDiagram
+    .getState()
+    .viewport.updateSize(
+      entry.contentRect.width,
+      entry.contentRect.height,
+      (entry.target as HTMLElement).offsetTop,
+      (entry.target as HTMLElement).offsetLeft
+    );
 });

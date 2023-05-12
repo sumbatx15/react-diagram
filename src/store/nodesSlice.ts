@@ -1,4 +1,16 @@
-import { keyBy, mapValues, pickBy } from "lodash-es";
+import {
+  flatMap,
+  keyBy,
+  keys,
+  map,
+  mapValues,
+  merge,
+  omit,
+  omitBy,
+  pick,
+  pickBy,
+  without,
+} from "lodash-es";
 import { StoreSlice } from ".";
 import { getNodeEdges } from "../utils/nodes";
 import { DiagramNode, NodeState, Vector } from "./utils";
@@ -17,7 +29,7 @@ export type NodesSlice = {
   selectNode: (id: string) => void;
   deselectNode: (id: string) => void;
   selectNodes: (ids: string[]) => void;
-  clearSelectedNodes: () => void;
+  deselectNodes: () => void;
   getSelectedNodeIds: () => string[];
   addNode: (node: DiagramNode) => void;
   addNodes: (nodes: DiagramNode[]) => void;
@@ -43,49 +55,37 @@ export const createNodesSlice: StoreSlice<NodesSlice> = (set, get) => ({
     state.deleteEdges(edges.map((edge) => edge.id));
 
     set((state) => ({
-      nodeIds: state.nodeIds.filter((nodeId) => nodeId !== id),
-      nodePositions: pickBy(state.nodePositions, (_, nodeId) => nodeId !== id),
-      nodeData: pickBy(state.nodeData, (_, nodeId) => nodeId !== id),
-      nodeStates: pickBy(state.nodeStates, (_, nodeId) => nodeId !== id),
-      nodeTypes: pickBy(state.nodeTypes, (_, nodeId) => nodeId !== id),
+      nodeIds: without(state.nodeIds, id),
+      nodePositions: omit(state.nodePositions, id),
+      nodeData: omit(state.nodeData, id),
+      nodeStates: omit(state.nodeStates, id),
+      nodeTypes: omit(state.nodeTypes, id),
     }));
   },
   deleteSelectedNodes: () => {
     const state = get();
-    const selectedNodeIds = state.nodeIds.filter(
-      (id) => state.nodeStates[id]?.selected ?? false
+    const selectedNodeIds = keys(pickBy(state.nodeStates, { selected: true }));
+
+    const edgesToRemove = flatMap(selectedNodeIds, (id) =>
+      getNodeEdges(id, state.edges)
     );
-    const edges = selectedNodeIds.reduce(
-      (acc, id) => [...acc, ...getNodeEdges(id, state.edges)],
-      [] as typeof state.edges
-    );
-    state.deleteEdges(edges.map((edge) => edge.id));
+
+    state.deleteEdges(map(edgesToRemove, "id"));
+
     set((state) => ({
-      nodeIds: state.nodeIds.filter((id) => !selectedNodeIds.includes(id)),
-      nodePositions: pickBy(state.nodePositions, (_, id) => {
-        return !selectedNodeIds.includes(id);
-      }),
-      nodeData: pickBy(state.nodeData, (_, id) => {
-        return !selectedNodeIds.includes(id);
-      }),
-      nodeStates: pickBy(state.nodeStates, (_, id) => {
-        return !selectedNodeIds.includes(id);
-      }),
-      nodeTypes: pickBy(state.nodeTypes, (_, id) => {
-        return !selectedNodeIds.includes(id);
-      }),
+      nodeIds: without(state.nodeIds, ...selectedNodeIds),
+      nodePositions: omit(state.nodePositions, selectedNodeIds),
+      nodeData: omit(state.nodeData, selectedNodeIds),
+      nodeStates: omit(state.nodeStates, selectedNodeIds),
+      nodeTypes: omit(state.nodeTypes, selectedNodeIds),
     }));
   },
 
-  updateNodeState: (id, state) => {
+  updateNodeState: (id, nodeState) => {
     set((state) => ({
-      nodeStates: {
-        ...state.nodeStates,
-        [id]: {
-          ...state.nodeStates[id],
-          ...state,
-        },
-      },
+      nodeStates: merge({}, state.nodeStates, {
+        [id]: nodeState,
+      }),
     }));
   },
 
@@ -140,7 +140,7 @@ export const createNodesSlice: StoreSlice<NodesSlice> = (set, get) => ({
     }));
   },
 
-  clearSelectedNodes: () => {
+  deselectNodes: () => {
     set((state) => ({
       nodeStates: {
         ...state.nodeStates,

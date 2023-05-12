@@ -70,6 +70,7 @@ export const Draggable: FC<LayerProps> = ({ id, children }) => {
         ctrlKey,
         shiftKey,
         tap,
+        memo,
       }) => {
         if (canceled || pinching || ctrlKey) return cancel();
         if (

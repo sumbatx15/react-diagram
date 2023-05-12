@@ -1,7 +1,6 @@
-import { FC, memo } from "react";
+import { memo } from "react";
 import { NodeFC } from "../../types";
 import { Handle } from "../Diagram/handle";
-import { Box, Text } from "@chakra-ui/react";
 import { useNodeData } from "../Diagram/WrappedNode";
 export const DefaultNode: NodeFC = memo(({ id }) => {
   const [data] = useNodeData();
@@ -16,7 +15,9 @@ export const DefaultNode: NodeFC = memo(({ id }) => {
         color: "white",
       }}
     >
-      <Text /* onClick={toggle} */>{data?.label || `Default: ${id}`}</Text>
+      <p /* onClick={toggle} */>
+        {(data as Partial<{ label: string }>)?.label || `Default: ${id}`}
+      </p>
       <Handle id="in" type="target" placement="left" />
       <Handle id="out" type="source" placement="right" />
     </div>

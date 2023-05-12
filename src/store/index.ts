@@ -1,14 +1,14 @@
-import { create, StateCreator, StoreApi, UseBoundStore } from "zustand";
-import { createNodesSlice, NodesSlice } from "./nodesSlice";
-import { createEdgesSlice, EdgesSlice } from "./edgesSlice";
-import { createDraggedEdgeSlice, DraggedEdgeSlice } from "./draggedEdgeSlice";
-import { createElementsSlice, ElementsSlice } from "./elementsSlice";
-import { createViewportSlice, ViewportSlice } from "./viewportSlice";
-import { subscribeWithSelector } from "zustand/middleware";
-import { createFitViewSlice, FitViewSlice } from "./fitviewSlice";
-import { createConfigSlice, ConfigSlice } from "./configSlice";
 import { merge, omit } from "lodash-es";
+import { create, StateCreator } from "zustand";
+import { subscribeWithSelector } from "zustand/middleware";
+import { ConfigSlice, createConfigSlice } from "./configSlice";
+import { createDraggedEdgeSlice, DraggedEdgeSlice } from "./draggedEdgeSlice";
+import { createEdgesSlice, EdgesSlice } from "./edgesSlice";
+import { createElementsSlice, ElementsSlice } from "./elementsSlice";
+import { createFitViewSlice, FitViewSlice } from "./fitviewSlice";
 import { createIOSlice, IOSlice } from "./ioSlice";
+import { createNodesSlice, NodesSlice } from "./nodesSlice";
+import { createViewportSlice, ViewportSlice } from "./viewportSlice";
 
 export type StoreState = NodesSlice &
   EdgesSlice &

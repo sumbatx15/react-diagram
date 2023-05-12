@@ -1,28 +1,20 @@
-import { Box, HStack } from "@chakra-ui/react";
-import useResizeObserver from "@react-hook/resize-observer";
-import { animated, useSpring } from "@react-spring/web";
+import { animated, to, useSpring } from "@react-spring/web";
 import { useGesture } from "@use-gesture/react";
 import { clamp } from "lodash-es";
-import { FC, useRef, useState } from "react";
+import { FC, useLayoutEffect, useRef } from "react";
+import { useHotkeys } from "react-hotkeys-hook";
 import { createNode, getInDiagramPosition } from "../../store/diagramStore";
 import { getNodesInsideRect } from "../../store/utils";
 import { EdgeTypes, NodeTypes } from "../../types";
-import { FullscreenBtn } from "../Editor/FullscreenBtn";
-import { SelectionBox } from "../Selection/Selection";
-import { DraggedEdge, EdgeContainer } from "./edge";
-import { createNodesAndEdges } from "./utils";
-import { DefaultNode } from "../Node/DefaultNode";
-import { WrappedNode } from "./WrappedNode";
-import { EdgeRenderer } from "../EdgeRenderer/EdgeRenderer";
-import { DiagramView, useGetDiagramStore } from "./WrappedDiagram";
-import { Background } from "../background";
-import { ElevatedEdgeRenderer } from "../EdgeRenderer/ElevatedEdgeRenderer";
-import { mockProject } from "../../mock/project";
-import { CustomNode } from "../Node/CustomNode";
-import { useKey } from "react-use";
-import { NodeRenderer } from "../NodeRenderer/NodeRenderer";
-import { useHotkeys } from "react-hotkeys-hook";
 import { mergeRefs } from "../../utils";
+import { containerResizeObserver } from "../../utils/resizeObserver";
+import { EdgeRenderer } from "../EdgeRenderer/EdgeRenderer";
+import { ElevatedEdgeRenderer } from "../EdgeRenderer/ElevatedEdgeRenderer";
+import { FullscreenBtn } from "../Editor/FullscreenBtn";
+import { NodeRenderer } from "../NodeRenderer/NodeRenderer";
+import { SelectionBox } from "../Selection/Selection";
+import { createNodesAndEdges } from "./utils";
+import { useGetDiagramStore } from "./WrappedDiagram";
 export interface DiagramProps extends React.HTMLAttributes<HTMLDivElement> {
   nodeTypes?: NodeTypes;
   edgeTypes?: EdgeTypes;
@@ -40,41 +32,7 @@ export const Diagram: FC<DiagramProps> = ({
   ...props
 }) => {
   const useDiagram = useGetDiagramStore();
-  const updateScale = useDiagram((state) => state.viewport.updateScale);
   const fitView = useDiagram((state) => state.fitView);
-  const nodeIds = useDiagram((state) => state.nodeIds);
-  const addNode = useDiagram((state) => state.addNode);
-  const setNodes = useDiagram((state) => state.setNodes);
-  const setEdges = useDiagram((state) => state.setEdges);
-
-  const randomizePositions = () => {
-    if (!useDiagram.getState().nodeIds.length) return;
-    const positions = Object.entries(
-      useDiagram.getState().nodePositions
-    ).reduce((acc, [id, pos]) => {
-      const x = Math.random() * 2000;
-      const y = Math.random() * 1000;
-      acc[id] = { x, y };
-      return acc;
-    }, {} as Record<string, { x: number; y: number }>);
-    useDiagram.setState({ nodePositions: positions });
-    fitView();
-  };
-  const handleAdd = () => {
-    addNode({
-      ...createNode(),
-      type: Math.random() > 0.5 ? "default" : "custom",
-    });
-  };
-
-  const addMore = () => {
-    const { edges, nodes } = createNodesAndEdges(10, 10);
-    setNodes(nodes);
-    setEdges(edges);
-    setTimeout(() => {
-      fitView();
-    }, 500);
-  };
 
   const containerRef = useRef<HTMLDivElement>(null);
   const paneRef = useRef<HTMLDivElement>(null);
@@ -85,16 +43,14 @@ export const Diagram: FC<DiagramProps> = ({
     scale: useDiagram.getState().viewport.scale,
   }));
 
-  useResizeObserver(containerRef, (entry) => {
-    useDiagram
-      .getState()
-      .viewport.updateSize(
-        entry.contentRect.width,
-        entry.contentRect.height,
-        (entry.target as HTMLElement).offsetTop,
-        (entry.target as HTMLElement).offsetLeft
-      );
-  });
+  useLayoutEffect(() => {
+    containerRef.current &&
+      containerResizeObserver.observe(containerRef.current);
+    return () => {
+      containerRef.current &&
+        containerResizeObserver.unobserve(containerRef.current);
+    };
+  }, []);
 
   useDiagram((state) => {
     if (
@@ -275,38 +231,38 @@ export const Diagram: FC<DiagramProps> = ({
     useDiagram.getState().deleteSelectedEdges();
   });
 
+  const ref2 = useHotkeys("esc", (ev) => {
+    useDiagram.getState().deselectNodes();
+    useDiagram.getState().deselectEdges();
+  });
+
   return (
     <div
       className="diagram-container"
+      data-diagram-id={id}
       style={{
         touchAction: "none",
         width: "100%",
         height: "100%",
         userSelect: "none",
         outline: "none",
-        background: "black",
+        background: "gray",
         overflow: "hidden",
         color: "white",
       }}
       tabIndex={0}
-      ref={mergeRefs(containerRef, ref)}
+      ref={mergeRefs(containerRef, ref, ref2)}
       {...props}
     >
-      {/* <Background color="gray" id={id} /> */}
       {children}
-      <HStack zIndex={100} pos="absolute">
-        <button onClick={handleAdd}>addnode</button>
-        <button onClick={addMore}>add more</button>
-        <button onClick={() => randomizePositions()}>randomize</button>
-        <button onClick={() => fitView()}>fitView</button>
-
-        <FullscreenBtn target={containerRef} />
-      </HStack>
       <animated.div
         ref={paneRef}
         className="diagram-pane"
         style={{
-          ...styles,
+          transform: to(
+            [styles.x, styles.y, styles.scale],
+            (x, y, scale) => `translate(${x}px, ${y}px) scale(${scale})`
+          ),
           width: "100%",
           height: "100%",
           touchAction: "none",

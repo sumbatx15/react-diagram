@@ -2,10 +2,11 @@ export const intersectionObserver = new IntersectionObserver(
   async (entries) => {
     // show / hide elements based on intersection with inline styles
     entries.forEach((entry) => {
+      const target = entry.target as HTMLElement;
       if (entry.isIntersecting) {
-        entry.target.style.visibility = "visible";
+        target.style.visibility = "visible";
       } else {
-        entry.target.style.visibility = "hidden";
+        target.style.visibility = "hidden";
       }
     });
   }

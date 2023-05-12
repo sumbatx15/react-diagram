@@ -1,4 +1,3 @@
-import { Circle } from "@chakra-ui/react";
 import { useGesture } from "@use-gesture/react";
 import { FC, memo, useLayoutEffect, useRef } from "react";
 import { useDraggedEdge } from "../../hooks/useDraggedEdge";
@@ -130,7 +129,7 @@ export const Handle: FC<HandleProps> = memo(({ id, type, placement }) => {
       data-node-id={nodeId}
       data-type={type}
     >
-      {draggedEdge && (
+      {/* {draggedEdge && (
         <Circle
           data-diagram-id={diagramId}
           data-element-type="handle"
@@ -143,7 +142,7 @@ export const Handle: FC<HandleProps> = memo(({ id, type, placement }) => {
           size="42px"
           border="1px dashed gray"
         />
-      )}
+      )} */}
     </div>
   );
 });
