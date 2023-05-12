@@ -1,4 +1,5 @@
 import { FC, useLayoutEffect, useMemo } from "react";
+import "../../App.css";
 
 import React, { createContext, useContext } from "react";
 import { DiagramStoreHook, StoreState, useDiagrams } from "../../store";

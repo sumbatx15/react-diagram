@@ -1,0 +1,10 @@
+# Ignore the following directories
+node_modules/
+public/
+src/
+
+# Ignore specific files
+*.log
+
+# Ignore all .env files
+*.env
