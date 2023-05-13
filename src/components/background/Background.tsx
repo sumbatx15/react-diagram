@@ -23,7 +23,7 @@ const selector = (s: StoreState) => ({
   scale: s.viewport.scale,
 });
 
-function Background({
+function _Background({
   id,
   variant = BackgroundVariant.Dots,
   // only used for dots and cross
@@ -104,6 +104,6 @@ function Background({
   );
 }
 
-Background.displayName = "Background";
+_Background.displayName = "Background";
 
-export default memo(Background);
+export const Background = memo(_Background);
