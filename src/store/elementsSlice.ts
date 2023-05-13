@@ -62,11 +62,15 @@ export const createElementsSlice: StoreSlice<ElementsSlice> = (set, get) => {
     getHandleCenter: (nodeId, handleId) => {
       const handleDimensions = get().handleDimensions[nodeId]?.[handleId];
       const position = get().getNodePosition(nodeId);
+      const { offsetLeft, offsetTop } = get().viewport;
+      console.log('offsetLeft, offsetTop:', offsetLeft, offsetTop)
       if (!handleDimensions || !position) return;
 
       return getHandleCenter({
         nodePosition: position,
         handleRelativeCenterOffset: handleDimensions.relativeCenterOffset,
+        offsetLeft,
+        offsetTop,
       });
     },
 

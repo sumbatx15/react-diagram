@@ -8,10 +8,12 @@
 .handle {
   position: absolute;
   cursor: crosshair;
-  z-index: 100;
+  z-index: 1;
+  touch-action: none;
+}
+.handle.circle {
   width: 16px;
   height: 16px;
-  touch-action: none;
   background: white;
   border-radius: 50%;
 }

@@ -48,21 +48,27 @@ function App() {
   };
 
   return (
-    <div style={{ width: "100vw", height: "100vh" }}>
-      <DiagramView
-        id="diagram-1"
-        nodeTypes={{
-          custom: CustomNode,
-        }}
-      >
-        <div style={{ position: "absolute", zIndex: 100 }}>
-          <button onClick={handleAdd}>addnode</button>
-          <button onClick={addMore}>add more</button>
-          <button onClick={() => randomizePositions()}>randomize</button>
-          <button onClick={() => fitView()}>fitView</button>
-        </div>
-        <Background id="diagram-1" color="black" />
-      </DiagramView>
+    <div>
+      <div style={{ width: "100vw", height: "150vh", padding: "100px" }}>
+        <DiagramView
+          id="diagram-1"
+          style={{
+            width: "1000px",
+            height: "600px",
+          }}
+          nodeTypes={{
+            custom: CustomNode,
+          }}
+        >
+          <div style={{ position: "absolute", zIndex: 100 }}>
+            <button onClick={handleAdd}>addnode</button>
+            <button onClick={addMore}>add more</button>
+            <button onClick={() => randomizePositions()}>randomize</button>
+            <button onClick={() => fitView()}>fitView</button>
+          </div>
+          <Background id="diagram-1" color="black" />
+        </DiagramView>
+      </div>
     </div>
   );
 }

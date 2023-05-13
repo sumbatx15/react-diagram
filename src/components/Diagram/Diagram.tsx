@@ -7,7 +7,10 @@ import { createNode, getInDiagramPosition } from "../../store/diagramStore";
 import { getNodesInsideRect } from "../../store/utils";
 import { EdgeTypes, NodeTypes } from "../../types";
 import { mergeRefs } from "../../utils";
-import { containerResizeObserver } from "../../utils/resizeObserver";
+import {
+  containerResizeObserver,
+  handleViewportChange,
+} from "../../utils/resizeObserver";
 import { EdgeRenderer } from "../EdgeRenderer/EdgeRenderer";
 import { ElevatedEdgeRenderer } from "../EdgeRenderer/ElevatedEdgeRenderer";
 import { FullscreenBtn } from "../Editor/FullscreenBtn";
@@ -15,6 +18,8 @@ import { NodeRenderer } from "../NodeRenderer/NodeRenderer";
 import { SelectionBox } from "../Selection/Selection";
 import { createNodesAndEdges } from "./utils";
 import { useGetDiagramStore } from "./WrappedDiagram";
+import { containerIntersectionObserver } from "../../utils/intersectionObserver";
+import { useWindowScroll } from "react-use";
 export interface DiagramProps extends React.HTMLAttributes<HTMLDivElement> {
   nodeTypes?: NodeTypes;
   edgeTypes?: EdgeTypes;
@@ -29,6 +34,7 @@ export const Diagram: FC<DiagramProps> = ({
   maxZoom = 5,
   id,
   children,
+  style,
   ...props
 }) => {
   const useDiagram = useGetDiagramStore();
@@ -44,11 +50,25 @@ export const Diagram: FC<DiagramProps> = ({
   }));
 
   useLayoutEffect(() => {
-    containerRef.current &&
-      containerResizeObserver.observe(containerRef.current);
+    if (!containerRef.current) return;
+    containerResizeObserver.observe(containerRef.current);
+    containerIntersectionObserver.observe(containerRef.current);
+
     return () => {
-      containerRef.current &&
-        containerResizeObserver.unobserve(containerRef.current);
+      if (!containerRef.current) return;
+      containerResizeObserver.unobserve(containerRef.current);
+      containerIntersectionObserver.unobserve(containerRef.current);
+    };
+  }, []);
+
+  useLayoutEffect(() => {
+    // listen to document scroll
+    const onScroll = () => {
+      handleViewportChange(containerRef.current!);
+    };
+    document.addEventListener("scroll", onScroll);
+    return () => {
+      document.removeEventListener("scroll", onScroll);
     };
   }, []);
 
@@ -249,6 +269,7 @@ export const Diagram: FC<DiagramProps> = ({
         background: "gray",
         overflow: "hidden",
         color: "white",
+        ...style,
       }}
       tabIndex={0}
       ref={mergeRefs(containerRef, ref, ref2)}

@@ -1,5 +1,5 @@
 import { merge, set } from "lodash-es";
-import { useDiagrams } from "../store";
+import { StoreState, useDiagrams } from "../store";
 import { ElementsSlice } from "../store/elementsSlice";
 import {
   DOMRectLike,
@@ -7,10 +7,10 @@ import {
   getUnscaledHandlesRects,
   getUnscaledNodeRect,
 } from "../store/utils";
+import { ViewportSlice } from "../store/viewportSlice";
+import { ViewportProps } from "../store/viewportSlice";
 
 export const resizeObserver = new ResizeObserver(async (entries) => {
-  console.time("generating rects");
-  console.log("start generating rects");
   const diagramId =
     entries
       .find((entry) => entry.target.hasAttribute("data-diagram-id"))
@@ -57,22 +57,48 @@ export const resizeObserver = new ResizeObserver(async (entries) => {
   }));
 });
 
-export const containerResizeObserver = new ResizeObserver((entries) => {
-  const diagramId =
-    entries
-      .find((entry) => entry.target.hasAttribute("data-diagram-id"))
-      ?.target.getAttribute("data-diagram-id") || "";
-  const useDiagram = useDiagrams.getState().diagrams[diagramId];
-
-  const entry = entries[0];
-  console.log('entry:', entry)
-
-  useDiagram
+export const updateViewport = ({
+  diagramId,
+  height,
+  offsetLeft,
+  offsetTop,
+  width,
+}: { diagramId: string } & Pick<
+  ViewportProps,
+  "width" | "height" | "offsetLeft" | "offsetTop"
+>) => {
+  return useDiagrams
     .getState()
-    .viewport.updateSize(
-      entry.contentRect.width,
-      entry.contentRect.height,
-      (entry.target as HTMLElement).offsetTop,
-      (entry.target as HTMLElement).offsetLeft
-    );
+    .diagrams[diagramId]?.getState()
+    .viewport.updateSize(width, height, offsetTop, offsetLeft);
+};
+
+export const getViewport = (element: HTMLElement) => {
+  const diagramId =
+    element.getAttribute("data-diagram-id") ||
+    element.closest("[data-diagram-id]")?.getAttribute("data-diagram-id") ||
+    "";
+  console.log("diagramId:", diagramId);
+
+  const rect = element.getBoundingClientRect();
+  return {
+    diagramId,
+    width: element.clientWidth,
+    height: element.clientHeight,
+    offsetLeft: rect.left,
+    offsetTop: rect.top,
+  };
+};
+
+export const handleViewportChange = (element: HTMLElement) => {
+  console.log("handleViewportChange:");
+  const viewport = getViewport(element);
+  console.log("viewport:", viewport);
+  updateViewport(viewport);
+};
+
+export const containerResizeObserver = new ResizeObserver((entries) => {
+  entries.forEach((entry) => {
+    handleViewportChange(entry.target as HTMLElement);
+  });
 });

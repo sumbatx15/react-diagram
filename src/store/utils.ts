@@ -7,6 +7,7 @@ import {
   calculateWidthAndHeight,
 } from "../components/Selection/Selection";
 import { DiagramEdge } from "./diagramStore";
+import { ViewportProps } from "./viewportSlice";
 
 export const createEdge = (edge: Omit<DiagramEdge, "id">) => {
   return {
@@ -151,17 +152,20 @@ export const getUnscaledRelativePosition = ({
     elementRect: getUnscaledDOMRect(elementRect, scale),
   });
 };
-interface GetHandleCenterOptions {
+interface GetHandleCenterOptions
+  extends Pick<ViewportProps, "offsetLeft" | "offsetTop"> {
   nodePosition: Vector;
   handleRelativeCenterOffset: Vector;
 }
 export const getHandleCenter = ({
   nodePosition,
   handleRelativeCenterOffset,
+  offsetLeft,
+  offsetTop,
 }: GetHandleCenterOptions) => {
   return {
-    x: nodePosition.x + handleRelativeCenterOffset.x,
-    y: nodePosition.y + handleRelativeCenterOffset.y,
+    x: nodePosition.x + handleRelativeCenterOffset.x ,
+    y: nodePosition.y + handleRelativeCenterOffset.y ,
   };
 };
 

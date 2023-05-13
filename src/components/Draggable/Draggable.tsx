@@ -64,13 +64,11 @@ export const Draggable: FC<LayerProps> = ({ id, children }) => {
         delta: [x, y],
         event,
         canceled,
-        first,
         cancel,
         pinching,
         ctrlKey,
         shiftKey,
         tap,
-        memo,
       }) => {
         if (canceled || pinching || ctrlKey) return cancel();
         if (
@@ -83,9 +81,7 @@ export const Draggable: FC<LayerProps> = ({ id, children }) => {
         const state = useDiagram.getState();
         if (tap) {
           if (shiftKey) {
-            console.log("shiftKey:", shiftKey);
             const isSelected = state.getNodeState(id)?.selected;
-            console.log("isSelected:", isSelected);
             isSelected ? state.deselectNode(id) : state.selectNode(id);
           } else {
             state.selectNodes([id]);

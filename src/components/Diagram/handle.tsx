@@ -53,6 +53,7 @@ export const Handle: FC<HandleProps> = memo(({ id, type, placement }) => {
           });
         }
 
+        console.log("state.viewport:", state.viewport);
         state.updateDraggedEdgePosition({
           end: getInDiagramPosition({ x: xy[0], y: xy[1] }, state.viewport),
         });
@@ -122,7 +123,7 @@ export const Handle: FC<HandleProps> = memo(({ id, type, placement }) => {
   return (
     <div
       ref={ref}
-      className={`handle ${placement}`}
+      className={`handle circle ${placement} `}
       data-diagram-id={diagramId}
       data-element-type="handle"
       data-id={id}
