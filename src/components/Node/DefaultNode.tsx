@@ -18,7 +18,9 @@ export const DefaultNode: NodeFC = memo(({ id }) => {
       <p /* onClick={toggle} */>
         {(data as Partial<{ label: string }>)?.label || `Default: ${id}`}
       </p>
-      <Handle id="in" type="target" placement="left" />
+      <Handle id="in" type="target" placement="left">
+        <div style={{ width: "20px", height: "20px", background: "red" }}></div>
+      </Handle>
       <Handle id="out" type="source" placement="right" />
     </div>
   );

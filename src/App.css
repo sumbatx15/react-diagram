@@ -27,7 +27,6 @@
   left: 50%;
   top: 50%;
   touch-action: none;
-  background: white;
   border-radius: 50%;
 }
 .handle.left {
