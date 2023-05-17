@@ -23,17 +23,28 @@ export const createNode = (): DiagramNode => ({
   type: "default",
 });
 
-export interface IEdge {
+export interface Connection {
   source: string;
   target: string;
   sourceHandle: string;
   targetHandle: string;
 }
-export interface DiagramEdge extends IEdge {
+
+export interface DiagramEdge extends Connection {
   id: string;
   type?: string;
   data: unknown;
   animated?: boolean;
+  style?: React.CSSProperties;
+}
+
+export interface Edge<T = any> {
+  id: string;
+  type?: string;
+  source: string;
+  target: string;
+  sourceHandle?: string | null;
+  targetHandle?: string | null;
 }
 
 export type { StartEndPosition as EdgePosition };

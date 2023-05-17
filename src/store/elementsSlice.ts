@@ -1,12 +1,11 @@
-import { omit, set as _set } from "lodash-es";
+import { set as _set, omit } from "lodash-es";
 import { StoreSlice } from ".";
 import { Placement } from "../components/Diagram/utils";
 import {
-  createZeroVector,
   DOMRectLike,
-  getHandleCenter,
   HandleDimensions,
   Vector,
+  getHandleCenter
 } from "./utils";
 
 export type ElementsSlice = {
@@ -63,7 +62,6 @@ export const createElementsSlice: StoreSlice<ElementsSlice> = (set, get) => {
       const handleDimensions = get().handleDimensions[nodeId]?.[handleId];
       const position = get().getNodePosition(nodeId);
       const { offsetLeft, offsetTop } = get().viewport;
-      console.log('offsetLeft, offsetTop:', offsetLeft, offsetTop)
       if (!handleDimensions || !position) return;
 
       return getHandleCenter({

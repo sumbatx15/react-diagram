@@ -1,6 +1,8 @@
 import { DiagramEdge } from "../store/diagramStore";
 
-export type NodeFC = React.FC<{ id: string }>;
+export type NodeProps = { id: string };
+
+export type NodeFC<T = any> = React.FC<NodeProps & T>;
 export type EdgeFC = React.FC<DiagramEdge>;
 
 export type NodeTypes = Record<string, NodeFC>;

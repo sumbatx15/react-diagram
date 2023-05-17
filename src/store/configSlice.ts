@@ -1,5 +1,5 @@
 import { StoreSlice } from ".";
-import { DiagramEdge, IEdge } from "./diagramStore";
+import { DiagramEdge, Connection } from "./diagramStore";
 import {
   createEdgePosition,
   createZeroStartEndPosition,
@@ -7,11 +7,11 @@ import {
 } from "./utils";
 
 export type ConfigSlice = {
-  onConnection: ((edge: IEdge) => void) | null;
+  onConnect: ((edge: Connection) => void) | null;
 };
 
 // eslint-disable-next-line react-func/max-lines-per-function
 export const createConfigSlice: StoreSlice<ConfigSlice> = (set, get) => ({
-  onConnection: null,
+  onConnect: null,
   elevateEdgeOnSelection: true,
 });

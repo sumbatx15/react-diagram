@@ -35,7 +35,9 @@ export const createIOSlice: StoreSlice<IOSlice> = (set, get) => ({
   import: (project) => {
     set(() => ({
       ...createStoreNodes(project.nodes),
-      edges: project.edges,
     }));
+    setTimeout(() => {
+      set({ edges: project.edges });
+    }, 0);
   },
 });

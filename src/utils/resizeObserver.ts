@@ -78,7 +78,6 @@ export const getViewport = (element: HTMLElement) => {
     element.getAttribute("data-diagram-id") ||
     element.closest("[data-diagram-id]")?.getAttribute("data-diagram-id") ||
     "";
-  console.log("diagramId:", diagramId);
 
   const rect = element.getBoundingClientRect();
   return {
@@ -91,9 +90,7 @@ export const getViewport = (element: HTMLElement) => {
 };
 
 export const handleViewportChange = (element: HTMLElement) => {
-  console.log("handleViewportChange:");
   const viewport = getViewport(element);
-  console.log("viewport:", viewport);
   updateViewport(viewport);
 };
 

@@ -14,10 +14,8 @@ export const intersectionObserver = new IntersectionObserver(
 
 export const containerIntersectionObserver = new IntersectionObserver(
   async (entries) => {
-    console.log("entries:", entries);
     // show / hide elements based on intersection with inline styles
     entries.forEach((entry) => {
-      console.log("containerIntersectionObserver:", entry);
       const target = entry.target as HTMLElement;
     });
   }

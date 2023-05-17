@@ -29,7 +29,6 @@ export const CustomEdge: EdgeFC = (edge) => {
   });
 
   const handleRemoveEdge = () => {
-    console.log("deleteEdge:", deleteEdge);
     return deleteEdge(edge.id);
   };
 

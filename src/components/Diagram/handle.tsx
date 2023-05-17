@@ -93,7 +93,7 @@ export const Handle: FC<HandleProps> = memo(
           ) {
             const [source, target] =
               type === "source" ? [from, to] : [to, from];
-            const onConnection = useDiagram.getState().onConnection;
+            const onConnection = useDiagram.getState().onConnect;
             onConnection
               ? onConnection({
                   source: source.dataset.nodeId as string,
@@ -123,8 +123,8 @@ export const Handle: FC<HandleProps> = memo(
       }
     );
     const draggedEdge = useDraggedEdge();
-    if (draggedEdge?.handleType === type && draggedEdge?.nodeId !== nodeId)
-      return null;
+    // if (draggedEdge?.handleType === type && draggedEdge?.nodeId !== nodeId)
+    //   return null;
     return (
       <div
         ref={ref}

@@ -6,7 +6,7 @@ import { useGetDiagramStore } from "../Diagram/WrappedDiagram";
 import { DefaultEdge } from "../Edge/DefaultEdge";
 
 export const ElevatedEdgeRenderer: FC<
-  { edgeTypes: EdgeTypes } & React.SVGProps<SVGSVGElement>
+  { edgeTypes?: EdgeTypes } & React.SVGProps<SVGSVGElement>
 > = memo(({ edgeTypes, ...svgProps }) => {
   const useDiagram = useGetDiagramStore();
 
@@ -14,13 +14,13 @@ export const ElevatedEdgeRenderer: FC<
     (state) => state.getEdgesByElevation().elevated,
     shallow
   );
-  console.log("edges:", edges);
   return (
     <EdgeContainer {...svgProps}>
       <DraggedEdge />
       {edges.map((edge) => {
+        const types = edgeTypes || {};
         const Component =
-          edgeTypes[edge.type || ""] || edgeTypes["default"] || DefaultEdge;
+          types[edge.type || ""] || types["default"] || DefaultEdge;
         return <Component key={edge.id} {...edge} />;
       })}
     </EdgeContainer>

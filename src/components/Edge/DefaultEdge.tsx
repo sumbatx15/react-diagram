@@ -11,21 +11,18 @@ export const DefaultEdge: EdgeFC = memo((edge) => {
   const useDiagram = useGetDiagramStore();
 
   // useLayoutEffect(() => {
-  //   console.log('ref.current:', ref.current)
   //   intersectionObserver.observe(ref.current!);
   //   return () => {
   //     intersectionObserver.unobserve(ref.current!);
   //   };
   // }, []);
-
-  const { source, sourceHandle, target, targetHandle, animated } = edge;
+  const { source, sourceHandle, target, targetHandle } = edge;
   const state = useDiagram.getState();
 
   const sourceCenter =
     state.getHandleCenter(source, sourceHandle) || createZeroVector();
   const targetCenter =
     state.getHandleCenter(target, targetHandle) || createZeroVector();
-
   const sourcePlacement = state.getHandlePlacement(source, sourceHandle);
   const targetPlacement = state.getHandlePlacement(target, targetHandle);
 
@@ -53,6 +50,7 @@ export const DefaultEdge: EdgeFC = memo((edge) => {
     visible: true,
     selected: state.selectedEdges.includes(edge.id),
   }));
+
 
   useDiagram((state) => {
     const sourceCenter = state.getHandleCenter(source, sourceHandle);

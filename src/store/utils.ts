@@ -45,11 +45,11 @@ export interface NodeState {
   disabled: boolean;
 }
 
-export interface DiagramNode {
+export interface DiagramNode<T = any> {
   id: string;
   type?: string;
   position: Vector;
-  data: unknown;
+  data: T;
   state: NodeState;
 }
 
@@ -164,8 +164,8 @@ export const getHandleCenter = ({
   offsetTop,
 }: GetHandleCenterOptions) => {
   return {
-    x: nodePosition.x + handleRelativeCenterOffset.x ,
-    y: nodePosition.y + handleRelativeCenterOffset.y ,
+    x: nodePosition.x + handleRelativeCenterOffset.x,
+    y: nodePosition.y + handleRelativeCenterOffset.y,
   };
 };
 
