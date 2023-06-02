@@ -15,14 +15,17 @@ const Inp = () => {
 };
 export const CustomNode: NodeFC = ({ id }) => {
   const [show, toggle] = useToggle(true);
+  const node = useNode();
+  console.log("node:", node);
+
   return (
     <div
-      // shadow="xl"
       style={{
         borderRadius: "4px",
         position: "relative",
         background: "#070708",
         padding: "16px",
+        boxShadow: "0 0 15px rgba(0,0,0,0.2)",
       }}
     >
       {show && <Handle id="in" type="target" placement="left" />}
@@ -31,7 +34,6 @@ export const CustomNode: NodeFC = ({ id }) => {
 
       <p /* onClick={toggle} */>CustomNode - {id}</p>
       <Inp />
-      <p>Heloo</p>
       <button onClick={toggle}>Toggle handles</button>
       {show && <Handle id="out" type="source" placement="right" />}
     </div>

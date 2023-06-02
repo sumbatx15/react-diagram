@@ -25,13 +25,24 @@ const NodeContextProvider: React.FC<{
   );
 };
 
-export const useNode = <T,>(selector?: (node: DiagramNode) => T) => {
+// overload when selector is provided
+export function useNode<T extends (node: DiagramNode) => any>(
+  selector: T
+): ReturnType<T>;
+
+// overload when selector is not provided
+export function useNode(selector?: undefined): DiagramNode;
+
+// implementation
+export function useNode<T extends (node: DiagramNode) => any | undefined>(
+  selector?: T
+) {
   const { nodeId } = useNodeContext();
   const useDiagram = useGetDiagramStore();
   return useDiagram((state) =>
     selector ? selector(state.getNode(nodeId)!) : state.getNode(nodeId)
-  ) as T extends unknown ? DiagramNode : T;
-};
+  );
+}
 
 export const useNodeData = <T,>() => {
   const { nodeId } = useNodeContext();
@@ -49,7 +60,7 @@ export const useNodeData = <T,>() => {
 export const useNodePosition = () => {
   const { nodeId } = useNodeContext();
   const useDiagram = useGetDiagramStore();
-  
+
   const position = useDiagram((state) => state.nodePositions[nodeId]);
   const setter = useMemo(
     () => useDiagram.getState().updateNodePosition.bind(null, nodeId),
