@@ -44,14 +44,14 @@ export function useNode<T extends (node: DiagramNode) => any | undefined>(
   );
 }
 
-export const useNodeData = <T,>() => {
-  const { nodeId } = useNodeContext();
+export const useNodeData = <T,>(nodeId?: string) => {
+  const ctx = useNodeContext();
 
   const useDiagram = useGetDiagramStore();
-  const data = useDiagram((state) => state.nodeData[nodeId]) as T;
+  const data = useDiagram((state) => state.nodeData[nodeId || ctx.nodeId]) as T;
   const setter = useMemo(
-    () => useDiagram.getState().updateNodeData.bind(null, nodeId),
-    [nodeId]
+    () => useDiagram.getState().updateNodeData.bind(null, nodeId || ctx.nodeId),
+    [nodeId || ctx.nodeId]
   );
 
   return [data, setter] as [T, (data: T) => void];

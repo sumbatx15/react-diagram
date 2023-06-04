@@ -10,6 +10,7 @@ import { useNodeContext } from "./WrappedNode";
 
 interface HandleProps extends React.HTMLAttributes<HTMLDivElement> {
   id: string;
+  nodeId?: string;
   type: "target" | "source";
   placement: Placement;
   children?: React.ReactNode;
@@ -17,21 +18,27 @@ interface HandleProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 export const Handle: FC<HandleProps> = memo(
-  ({ id, type, placement, children, ghostSize, ...props }) => {
+  ({ id, type, placement, children, ghostSize, nodeId: _nodeId, ...props }) => {
     const ref = useRef<HTMLDivElement>(null);
+
     const { diagramId } = useDiagramContext();
-    const { nodeId } = useNodeContext();
     const useDiagram = useGetDiagramStore();
 
+    const ctx = useNodeContext();
+    const rendererId = ctx.nodeId;
+
     useLayoutEffect(() => {
-      useDiagram.getState().setHandlePlacement(nodeId, id, placement);
+      useDiagram
+        .getState()
+        .setHandlePlacement(_nodeId || rendererId, id, placement);
     }, [placement]);
 
     useLayoutEffect(() => {
       ref.current && resizeObserver.observe(ref.current);
       return () => {
         ref.current && resizeObserver.unobserve(ref.current);
-        useDiagram.getState().clearHandleDimensions(nodeId, id);
+        useDiagram.getState().clearHandleDimensions(_nodeId || rendererId, id);
+        // useDiagram.getState().clearHandleRenderer(_nodeId || rendererId, id);
       };
     }, []);
 
@@ -41,7 +48,10 @@ export const Handle: FC<HandleProps> = memo(
           if (canceled || pinching) return;
           const state = useDiagram.getState();
           if (first) {
-            const handleCenter = state.getHandleCenter(nodeId, id);
+            const handleCenter = state.getHandleCenter(
+              _nodeId || rendererId,
+              id
+            );
 
             state.updateDraggedEdgePosition({
               start: handleCenter,
@@ -51,7 +61,7 @@ export const Handle: FC<HandleProps> = memo(
             state.setDraggedEdgeVisible(true);
             state.setDraggedEdge({
               handleId: id,
-              nodeId,
+              nodeId: _nodeId || rendererId,
               handleType: type,
             });
           }
@@ -132,7 +142,8 @@ export const Handle: FC<HandleProps> = memo(
         data-diagram-id={diagramId}
         data-element-type="handle"
         data-id={id}
-        data-node-id={nodeId}
+        data-node-id={_nodeId || rendererId}
+        data-renderer-id={rendererId}
         data-type={type}
         {...props}
       >
@@ -142,7 +153,8 @@ export const Handle: FC<HandleProps> = memo(
             data-diagram-id={diagramId}
             data-element-type="handle"
             data-id={id}
-            data-node-id={nodeId}
+            data-node-id={_nodeId || rendererId}
+            data-renderer-id={rendererId}
             data-type={type}
             style={{
               width: ghostSize,

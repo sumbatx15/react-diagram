@@ -182,17 +182,17 @@ export function createNodesAndEdges(xNodes = 10, yNodes = 10) {
       };
       nodes.push(node);
 
-      if (recentNodeId && nodeId <= xNodes * yNodes) {
-        edges.push({
-          id: `${x}-${y}`,
-          source: `stress-${recentNodeId.toString()}`,
-          target: `stress-${nodeId.toString()}`,
-          sourceHandle: `out`,
-          targetHandle: "in",
-          data: "",
-          // animated: true,
-        });
-      }
+      // if (recentNodeId && nodeId <= xNodes * yNodes) {
+      //   edges.push({
+      //     id: `${x}-${y}`,
+      //     source: `stress-${recentNodeId.toString()}`,
+      //     target: `stress-${nodeId.toString()}`,
+      //     sourceHandle: `out`,
+      //     targetHandle: "in",
+      //     data: "",
+      //     // animated: true,
+      //   });
+      // }
 
       recentNodeId = nodeId;
       nodeId++;

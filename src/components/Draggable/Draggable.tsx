@@ -18,18 +18,19 @@ export interface NodeCmpProps {
 
 export const Draggable: FC<LayerProps> = ({ id, children }) => {
   const ref = useRef<HTMLElement>(null);
+
+  const { diagramId } = useDiagramContext();
+  const useDiagram = useGetDiagramStore();
+
   useLayoutEffect(() => {
     // intersectionObserver.observe(ref.current!);
     resizeObserver.observe(ref.current!);
     return () => {
       resizeObserver.unobserve(ref.current!);
+      useDiagram.getState().clearHandleRenderersByNodeId(id);
       // intersectionObserver.unobserve(ref.current!);
     };
   }, []);
-
-  const { diagramId } = useDiagramContext();
-  const useDiagram = useGetDiagramStore();
-
   const [styles, api] = useSpring(() => ({
     x: useDiagram.getState().getNode(id)?.position.x || 0,
     y: useDiagram.getState().getNode(id)?.position.y || 0,

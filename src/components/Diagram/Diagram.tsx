@@ -1,7 +1,7 @@
-import { animated, to, useSpring } from "@react-spring/web";
+import { Partial, animated, to, useSpring } from "@react-spring/web";
 import { useGesture } from "@use-gesture/react";
 import { clamp } from "lodash-es";
-import { FC, memo, useLayoutEffect, useRef } from "react";
+import React, { FC, memo, useLayoutEffect, useRef } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { createNode, getInDiagramPosition } from "../../store/diagramStore";
 import { DiagramNode, getNodesInsideRect } from "../../store/utils";
@@ -20,15 +20,18 @@ import { createNodesAndEdges } from "./utils";
 import { useDiagramContext, useGetDiagramStore } from "./WrappedDiagram";
 import { containerIntersectionObserver } from "../../utils/intersectionObserver";
 import { useWindowScroll } from "react-use";
+import { ConfigSlice } from "../../store/configSlice";
 export interface DiagramProps<
   TNodeTypes extends NodeTypes = NodeTypes,
   TNodes extends DiagramNode[] = DiagramNode[]
-> extends React.HTMLAttributes<HTMLDivElement> {
+> extends React.HTMLAttributes<HTMLDivElement>,
+    Partial<ConfigSlice> {
   nodeTypes?: TNodeTypes;
   edgeTypes?: EdgeTypes;
   minZoom?: number;
   maxZoom?: number;
   nodes?: TNodes;
+  nodeIds?: string[];
 }
 export const Diagram: FC<DiagramProps> = memo(
   ({
@@ -39,11 +42,18 @@ export const Diagram: FC<DiagramProps> = memo(
     children,
     style,
     nodes,
+    nodeIds: _nodeIds,
+    onNodesDeleted,
     ...props
   }) => {
     const { diagramId } = useDiagramContext();
     const useDiagram = useGetDiagramStore();
     const fitView = useDiagram((state) => state.fitView);
+    const nodeIds = useDiagram((state) => state.nodeIds);
+
+    const _NodeRenderer = React.Children.toArray(children).find(
+      (child) => React.isValidElement(child) && child.type === NodeRenderer
+    );
 
     const containerRef = useRef<HTMLDivElement>(null);
     const paneRef = useRef<HTMLDivElement>(null);
@@ -55,6 +65,9 @@ export const Diagram: FC<DiagramProps> = memo(
     }));
 
     useLayoutEffect(() => {
+      useDiagram.setState({
+        onNodesDeleted,
+      });
       if (!containerRef.current) return;
       containerResizeObserver.observe(containerRef.current);
       containerIntersectionObserver.observe(containerRef.current);
@@ -299,7 +312,7 @@ export const Diagram: FC<DiagramProps> = memo(
         >
           <SelectionBox />
           <EdgeRenderer edgeTypes={edgeTypes} />
-          <NodeRenderer nodeTypes={nodeTypes} />
+          <NodeRenderer nodeTypes={nodeTypes} nodeIds={_nodeIds || nodeIds} />
           <ElevatedEdgeRenderer edgeTypes={edgeTypes} style={{ zIndex: 1 }} />
         </animated.div>
       </div>

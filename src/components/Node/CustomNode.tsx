@@ -15,7 +15,7 @@ const Inp = () => {
 };
 export const CustomNode: NodeFC = ({ id }) => {
   const [show, toggle] = useToggle(true);
-  const node = useNode();
+  const node = useNode((state) => state.type);
   console.log("node:", node);
 
   return (

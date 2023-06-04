@@ -1,13 +1,12 @@
 import { merge, set } from "lodash-es";
-import { StoreState, useDiagrams } from "../store";
+import { useDiagrams } from "../store";
 import { ElementsSlice } from "../store/elementsSlice";
 import {
   DOMRectLike,
   getHandleDimension,
-  getUnscaledHandlesRects,
+  getHandlesDetails,
   getUnscaledNodeRect,
 } from "../store/utils";
-import { ViewportSlice } from "../store/viewportSlice";
 import { ViewportProps } from "../store/viewportSlice";
 
 export const resizeObserver = new ResizeObserver(async (entries) => {
@@ -22,39 +21,58 @@ export const resizeObserver = new ResizeObserver(async (entries) => {
 
   const nodeRects = entries.reduce((acc, { target }) => {
     const nodeId =
+      target.getAttribute("data-renderer-id") ||
       target.getAttribute("data-node-id") ||
       target.getAttribute("data-id") ||
       "";
+
     const rect = getUnscaledNodeRect(nodeId, scale);
-    rect && (acc[nodeId] = rect);
+
+    if (rect) {
+      acc[nodeId] = rect;
+    }
     return acc;
   }, {} as Record<string, DOMRectLike>);
 
-  const { handleDimensions, nodeUnscaledRects } = Object.entries(
-    nodeRects
-  ).reduce(
-    (acc, [nodeId, nodeRect]) => {
-      set(acc, ["nodeUnscaledRects", nodeId], nodeRect);
+  const { handleDimensions, nodeUnscaledRects, handleRenderers } =
+    Object.entries(nodeRects).reduce(
+      (acc, [rendererId, nodeRect]) => {
+        set(acc, ["nodeUnscaledRects", rendererId], nodeRect);
 
-      const handleRects = getUnscaledHandlesRects(nodeId, scale);
-      if (!handleRects) return acc;
-      Object.entries(handleRects).forEach(([handleId, handleRect]) => {
-        const dimensions = getHandleDimension(nodeRect, handleRect);
-        set(acc, ["handleDimensions", nodeId, handleId], dimensions);
-      });
+        const { handleRects, handleRenderers } = getHandlesDetails(
+          rendererId,
+          scale
+        );
+        acc.handleRenderers = merge(acc.handleRenderers, handleRenderers);
+        handleRects.forEach((handle) => {
+          console.log("handle:", handle);
+          const dimensions = getHandleDimension(nodeRect, handle.rect);
+          set(
+            acc,
+            ["handleDimensions", handle.nodeId, handle.handleId],
+            dimensions
+          );
+        });
 
-      return acc;
-    },
-    {} as {
-      nodeUnscaledRects: ElementsSlice["nodeUnscaledRects"];
-      handleDimensions: ElementsSlice["handleDimensions"];
-    }
-  );
-
+        return acc;
+      },
+      {} as {
+        nodeUnscaledRects: ElementsSlice["nodeUnscaledRects"];
+        handleDimensions: ElementsSlice["handleDimensions"];
+        handleRenderers: ElementsSlice["handleRenderers"];
+      }
+    );
   useDiagram.setState((state) => ({
     handleDimensions: merge(state.handleDimensions, handleDimensions),
     nodeUnscaledRects: merge(state.nodeUnscaledRects, nodeUnscaledRects),
+    handleRenderers: merge(state.handleRenderers, handleRenderers),
   }));
+
+  console.log({
+    handleDimensions: useDiagram.getState().handleDimensions,
+    nodeUnscaledRects: useDiagram.getState().nodeUnscaledRects,
+    handleRenderers: useDiagram.getState().handleRenderers,
+  });
 });
 
 export const updateViewport = ({

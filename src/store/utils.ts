@@ -8,6 +8,8 @@ import {
 } from "../components/Selection/Selection";
 import { DiagramEdge } from "./diagramStore";
 import { ViewportProps } from "./viewportSlice";
+import { ElementsSlice } from "./elementsSlice";
+import { merge } from "lodash-es";
 
 export const createEdge = (edge: Omit<DiagramEdge, "id">) => {
   return {
@@ -40,9 +42,10 @@ export type Vector = {
 };
 
 export interface NodeState {
-  selected: boolean;
-  dragging: boolean;
-  disabled: boolean;
+  selected?: boolean;
+  dragging?: boolean;
+  disabled?: boolean;
+  hidden?: boolean;
 }
 
 export interface DiagramNode<T = any> {
@@ -254,23 +257,47 @@ export const getUnscaledNodeRect = (
   return getUnscaledDOMRect(element.getBoundingClientRect(), scale);
 };
 
-export const getUnscaledHandlesRects = (
-  nodeId: string,
-  scale: number
-): Record<string, DOMRectLike> => {
-  const elements = Array.from(
+export const getHandlesByNodeId = (nodeId: string) => {
+  return Array.from(
     document.querySelectorAll(
-      `[data-node-id="${nodeId}"][data-element-type="handle"]`
+      `[data-renderer-id="${nodeId}"][data-element-type="handle"]`
     )
   ) as HTMLElement[];
-  if (!elements) return {};
-  return elements.reduce((acc, element) => {
-    return {
+};
+
+export const getHandlesRenderers = (handles: HTMLElement[]) => {
+  return handles.reduce((acc, handle) => {
+    return merge(acc, {
+      [handle.dataset.nodeId as string]: {
+        [handle.dataset.id as string]: handle.dataset.rendererId as string,
+      },
+    });
+
+    /* {
       ...acc,
-      [element.dataset.id as string]: getUnscaledDOMRect(
-        element.getBoundingClientRect(),
-        scale
-      ),
-    };
-  }, {});
+      [handle.dataset.nodeId as string]: {
+        [handle.dataset.id as string]: handle.dataset.rendererId as string,
+      },
+    }; */
+  }, {} as ElementsSlice["handleRenderers"]);
+};
+
+export const getUnscaledHandlesRects = (
+  handles: HTMLElement[],
+  scale: number
+) => {
+  return handles.map((element) => ({
+    rect: getUnscaledDOMRect(element.getBoundingClientRect(), scale),
+    nodeId: element.dataset.nodeId as string,
+    handleId: element.dataset.id as string,
+  }));
+};
+
+export const getHandlesDetails = (nodeId: string, scale: number) => {
+  const elements = getHandlesByNodeId(nodeId);
+  console.log("elements:", elements);
+  return {
+    handleRenderers: getHandlesRenderers(elements),
+    handleRects: getUnscaledHandlesRects(elements, scale),
+  };
 };

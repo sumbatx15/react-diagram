@@ -5,14 +5,18 @@ import {
   DOMRectLike,
   HandleDimensions,
   Vector,
-  getHandleCenter
+  getHandleCenter,
 } from "./utils";
 
+type NodeId = string;
+type HandleId = string;
+
 export type ElementsSlice = {
-  nodeUnscaledRects: Record<string, DOMRectLike>;
-  handleUnscaledRects: Record<string, Record<string, DOMRectLike>>;
-  handleDimensions: Record<string, Record<string, HandleDimensions>>;
-  handlePlacements: Record<string, Record<string, Placement>>;
+  nodeUnscaledRects: Record<NodeId, DOMRectLike>;
+  handleUnscaledRects: Record<NodeId, Record<HandleId, DOMRectLike>>;
+  handleDimensions: Record<NodeId, Record<HandleId, HandleDimensions>>;
+  handlePlacements: Record<NodeId, Record<HandleId, Placement>>;
+  handleRenderers: Record<NodeId, Record<HandleId, string>>;
 
   getHandleDimensions: (nodeId: string, handleId: string) => HandleDimensions;
 
@@ -29,6 +33,8 @@ export type ElementsSlice = {
 
   getHandleCenter: (nodeId: string, handleId: string) => Vector | undefined;
   clearHandleDimensions: (nodeId: string, handleId: string) => void;
+  clearHandleRenderer: (nodeId: string, handleId: string) => void;
+  clearHandleRenderersByNodeId: (nodeId: string) => void;
   isHandleVisible: (nodeId: string, handleId: string) => boolean;
 };
 
@@ -39,6 +45,7 @@ export const createElementsSlice: StoreSlice<ElementsSlice> = (set, get) => {
     handleUnscaledRects: {},
     handleDimensions: {},
     handlePlacements: {},
+    handleRenderers: {},
 
     setHandlePlacement: (nodeId, handleId, placement) => {
       set((state) => ({
@@ -60,7 +67,8 @@ export const createElementsSlice: StoreSlice<ElementsSlice> = (set, get) => {
 
     getHandleCenter: (nodeId, handleId) => {
       const handleDimensions = get().handleDimensions[nodeId]?.[handleId];
-      const position = get().getNodePosition(nodeId);
+      const rendererId = get().handleRenderers[nodeId]?.[handleId];
+      const position = get().getNodePosition(rendererId);
       const { offsetLeft, offsetTop } = get().viewport;
       if (!handleDimensions || !position) return;
 
@@ -78,6 +86,21 @@ export const createElementsSlice: StoreSlice<ElementsSlice> = (set, get) => {
           ...state.handleDimensions,
           [nodeId]: omit(state.handleDimensions[nodeId], handleId),
         },
+      }));
+    },
+    clearHandleRenderer: (nodeId, handleId) => {
+      set((state) => ({
+        handleRenderers: {
+          ...state.handleRenderers,
+          [nodeId]: omit(state.handleRenderers[nodeId], handleId),
+        },
+      }));
+    },
+    clearHandleRenderersByNodeId: (nodeId) => {
+      const renderers = omit(get().handleRenderers, nodeId);
+      console.log('renderers:', renderers)
+      set((state) => ({
+        handleRenderers: renderers,
       }));
     },
 

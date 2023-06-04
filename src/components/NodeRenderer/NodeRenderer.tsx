@@ -5,9 +5,12 @@ import { WrappedNode } from "../Diagram/WrappedNode";
 import { DefaultNode } from "../Node/DefaultNode";
 import { DiagramProps } from "../Diagram/Diagram";
 
-export const NodeRenderer: FC<{ nodeTypes?: NodeTypes }> = ({ nodeTypes }) => {
+export const NodeRenderer: FC<{
+  nodeTypes?: NodeTypes;
+  nodeIds?: string[];
+}> = ({ nodeTypes, nodeIds: _nodeIds }) => {
   const useDiagram = useGetDiagramStore();
-  const nodeIds = useDiagram((state) => state.nodeIds);
+  const nodeIds = _nodeIds || useDiagram.getState().nodeIds;
 
   return (
     <>

@@ -65,6 +65,7 @@ export const createNodesSlice: StoreSlice<NodesSlice> = (set, get) => ({
   deleteSelectedNodes: () => {
     const state = get();
     const selectedNodeIds = keys(pickBy(state.nodeStates, { selected: true }));
+    get().onNodesDeleted?.(selectedNodeIds);
 
     const edgesToRemove = flatMap(selectedNodeIds, (id) =>
       getNodeEdges(id, state.edges)

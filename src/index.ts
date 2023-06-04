@@ -1,3 +1,4 @@
+export * from "./components/NodeRenderer/NodeRenderer";
 export * from "./components/Diagram/Diagram";
 export * from "./components/Diagram/WrappedDiagram";
 export * from "./components/Diagram/WrappedNode";
