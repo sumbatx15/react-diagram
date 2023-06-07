@@ -45,7 +45,6 @@ export const resizeObserver = new ResizeObserver(async (entries) => {
         );
         acc.handleRenderers = merge(acc.handleRenderers, handleRenderers);
         handleRects.forEach((handle) => {
-          console.log("handle:", handle);
           const dimensions = getHandleDimension(nodeRect, handle.rect);
           set(
             acc,
@@ -67,12 +66,6 @@ export const resizeObserver = new ResizeObserver(async (entries) => {
     nodeUnscaledRects: merge(state.nodeUnscaledRects, nodeUnscaledRects),
     handleRenderers: merge(state.handleRenderers, handleRenderers),
   }));
-
-  console.log({
-    handleDimensions: useDiagram.getState().handleDimensions,
-    nodeUnscaledRects: useDiagram.getState().nodeUnscaledRects,
-    handleRenderers: useDiagram.getState().handleRenderers,
-  });
 });
 
 export const updateViewport = ({

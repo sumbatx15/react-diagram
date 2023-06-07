@@ -166,8 +166,13 @@ export const Diagram: FC<DiagramProps> = memo(
             useDiagram.getState().setSelectedEdges([]);
           }
           if (useDiagram.getState().viewport.showSelectionBox) {
-            const nodeIds = getNodesInsideRect(useDiagram.getState());
-            useDiagram.getState().selectNodes(nodeIds);
+            
+            const selectedNodeIds = getNodesInsideRect({
+              ...useDiagram.getState(),
+              nodeIds: _nodeIds || nodeIds,
+            });
+
+            useDiagram.getState().selectNodes(selectedNodeIds);
             useDiagram.setState((state) => ({
               viewport: {
                 ...state.viewport,
